@@ -38,6 +38,7 @@ export interface UrlParameterInfo {
  * Using enum instead of type enumeration as an explicit namespace that should improve readability when used.
  */
 export enum UrlParameter {
+  id = 'id',
   organizationId = 'organizationId',
   instanceId = 'serviceId',
   backupId = 'backupId',
@@ -51,6 +52,13 @@ export enum UrlParameter {
 
 /** Default documentation for URL parameters. Can be overridden with 'parameterDescriptionOverride'. */
 export const URL_PARAMETER_INFO: Record<UrlParameter, UrlParameterInfo> = {
+  [UrlParameter.id]: {
+    doc: {
+      type: 'string',
+      text: 'ID',
+      description: 'Resource ID.',
+    },
+  },
   [UrlParameter.organizationId]: {
     doc: {
       type: 'string',

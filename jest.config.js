@@ -3,12 +3,31 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   testMatch: ['**/?(*.)+(spec).ts'],
-  transform: {
-    '^.+\\.(ts)$': [
-      'ts-jest',
-      {
-        tsconfig: 'tsconfig.json',
+  projects: [
+    {
+      displayName: 'unit',
+      testMatch: ['<rootDir>/src/**/*.spec.ts'],
+      transform: {
+        '^.+\\.(ts)$': [
+          'ts-jest',
+          {
+            tsconfig: 'tsconfig.json',
+          },
+        ],
       },
-    ],
-  },
+    },
+    {
+      displayName: 'e2e',
+      testMatch: ['<rootDir>/tests-e2e/**/*.spec.ts'],
+      setupFilesAfterEnv: ['<rootDir>/tests-e2e/setup.ts'],
+      transform: {
+        '^.+\\.(ts)$': [
+          'ts-jest',
+          {
+            tsconfig: 'tsconfig.json',
+          },
+        ],
+      },
+    },
+  ],
 };

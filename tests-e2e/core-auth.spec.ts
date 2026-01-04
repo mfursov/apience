@@ -7,6 +7,11 @@ import {
 } from '../src';
 import { getApiResult, getTestRoutes, makeRequest } from './test-setup';
 
+type HealthResponse = { status: string };
+type ItemResponse = { id: string; name: string };
+type UpdateItemResponse = { id: string; name: string; description: string };
+type UserProfile = { id: string; username: string };
+
 describe('Apience Core + Auth E2E Integration', () => {
   describe('Core routing with real HTTP requests', () => {
     it('should handle GET requests and return correct response.', async () => {
@@ -29,7 +34,8 @@ describe('Apience Core + Auth E2E Integration', () => {
 
       const response = await makeRequest('GET', '/v1/health');
       expect(response.status).toBe(200);
-      expect(getApiResult<{ status: string }>(response)).toStrictEqual({ status: 'healthy' });
+      const result = getApiResult<HealthResponse>(response);
+      expect(result).toStrictEqual({ status: 'healthy' });
     });
 
     it('should handle POST requests and validate body.', async () => {
@@ -71,8 +77,9 @@ describe('Apience Core + Auth E2E Integration', () => {
         body: { name: 'Test Item' },
       });
       expect(response.status).toBe(200);
-      expect((response.body as Record<string, unknown>).result.id).toBe('123');
-      expect((response.body as Record<string, unknown>).result.name).toBe('Test Item');
+      const result = getApiResult<ItemResponse>(response);
+      expect(result.id).toBe('123');
+      expect(result.name).toBe('Test Item');
     });
 
     it('should return 400 error for invalid request.', async () => {
@@ -168,9 +175,10 @@ describe('Apience Core + Auth E2E Integration', () => {
         body: { name: 'Updated Item', description: 'New description' },
       });
       expect(response.status).toBe(200);
-      expect((response.body as Record<string, unknown>).result.id).toBe('123');
-      expect((response.body as Record<string, unknown>).result.name).toBe('Updated Item');
-      expect((response.body as Record<string, unknown>).result.description).toBe('New description');
+      const result = getApiResult<UpdateItemResponse>(response);
+      expect(result.id).toBe('123');
+      expect(result.name).toBe('Updated Item');
+      expect(result.description).toBe('New description');
     });
 
     it('should handle PATCH requests for partial updates.', async () => {
@@ -214,8 +222,9 @@ describe('Apience Core + Auth E2E Integration', () => {
         body: { name: 'Patched Item' },
       });
       expect(response.status).toBe(200);
-      expect((response.body as Record<string, unknown>).result.id).toBe('456');
-      expect((response.body as Record<string, unknown>).result.name).toBe('Patched Item');
+      const result = getApiResult<ItemResponse>(response);
+      expect(result.id).toBe('456');
+      expect(result.name).toBe('Patched Item');
     });
   });
 
@@ -312,8 +321,9 @@ describe('Apience Core + Auth E2E Integration', () => {
         headers: { Authorization: `Basic ${credentials}` },
       });
       expect(response.status).toBe(200);
-      expect((response.body as Record<string, unknown>).result.id).toBe('user-1');
-      expect((response.body as Record<string, unknown>).result.username).toBe('user');
+      const result = getApiResult<UserProfile>(response);
+      expect(result.id).toBe('user-1');
+      expect(result.username).toBe('user');
     });
   });
 

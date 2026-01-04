@@ -1,6 +1,7 @@
 /**
  * Common utility functions - replacements for @cp/* imports
  */
+import { isBoolean as asserticIsBoolean, isNumber as asserticIsNumber, isEmail, isString, isUuid } from 'assertic';
 
 // ===== Assert utilities =====
 
@@ -89,31 +90,31 @@ export function validateObject<T extends Record<string, unknown>>(
 // ===== Common validators =====
 
 export function isNonEmptyString(value: unknown, errorStatus: string = BAD_REQUEST): void {
-  if (typeof value !== 'string' || value.trim().length === 0) {
+  if (!isString(value) || value.trim().length === 0) {
     throw new Error(`${errorStatus}: Expected non-empty string`);
   }
 }
 
 export function isValidEmail(value: unknown, errorStatus: string = BAD_REQUEST): void {
-  if (typeof value !== 'string' || !value.includes('@')) {
+  if (!isEmail(value)) {
     throw new Error(`${errorStatus}: Invalid email`);
   }
 }
 
 export function isNumber(value: unknown, errorStatus: string = BAD_REQUEST): void {
-  if (typeof value !== 'number') {
+  if (!asserticIsNumber(value)) {
     throw new Error(`${errorStatus}: Expected number`);
   }
 }
 
 export function isInteger(value: unknown, errorStatus: string = BAD_REQUEST): void {
-  if (!Number.isInteger(value)) {
+  if (!asserticIsNumber(value) || !Number.isInteger(value)) {
     throw new Error(`${errorStatus}: Expected integer`);
   }
 }
 
 export function isBoolean(value: unknown, errorStatus: string = BAD_REQUEST): void {
-  if (typeof value !== 'boolean') {
+  if (!asserticIsBoolean(value)) {
     throw new Error(`${errorStatus}: Expected boolean`);
   }
 }
@@ -131,7 +132,7 @@ export function isObject(value: unknown, errorStatus: string = BAD_REQUEST): voi
 }
 
 export function isUUID(value: unknown, errorStatus: string = BAD_REQUEST): void {
-  if (typeof value !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+  if (!isUuid(value)) {
     throw new Error(`${errorStatus}: Invalid UUID format`);
   }
 }

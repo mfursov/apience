@@ -1,6 +1,6 @@
 {
-  "name": "@apience/core",
-  "version": "1.0.0",
+  "name": "apience",
+  "version": "0.0.1",
   "description": "Express.js extension with built-in OpenAPI 3.0 documentation, validation, and type safety",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",

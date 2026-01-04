@@ -1,34 +1,14 @@
-/** @type {import('jest').Config} */
-const config = {
+/** @type {import('ts-jest').JestConfigWithTsJest} */
+module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>'],
-  testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
-  moduleFileExtensions: ['ts', 'js', 'json'],
-  extensionsToTreatAsEsm: ['.ts'],
-  moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-  },
+  testMatch: ['**/?(*.)+(spec).ts'],
   transform: {
-    '^.+\\.ts$': [
+    '^.+\\.(ts)$': [
       'ts-jest',
       {
-        useESM: true,
-        tsconfig: 'tsconfig.test.json',
+        tsconfig: 'tsconfig.json',
       },
     ],
   },
-  setupFilesAfterEnv: ['<rootDir>/test-e2e/setup.ts'],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.types.ts',
-    '!src/**/*.d.ts',
-    '!src/**/index.ts',
-  ],
-  coveragePathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-  ],
 };
-
-module.exports = config;

@@ -12,7 +12,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "format": "prettier --write \"./**/src/**/*.{ts,js,md}\"",
+    "format": "prettier --write \"./**/*.{ts,js,md,json}\"",
     "lint": "eslint .",
     "test": "jest",
     "webpack": "webpack",
@@ -22,15 +22,9 @@
     "express",
     "expressjs",
     "openapi",
-    "openapi-3.0",
     "typescript",
     "rest-api",
-    "rest",
-    "api",
-    "validation",
-    "documentation",
-    "type-safe",
-    "framework"
+    "rest"
   ],
   "license": "MIT",
   "dependencies": {

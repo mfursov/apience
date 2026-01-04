@@ -28,12 +28,7 @@ npm install @apience/core express
 
 ```typescript
 import express from 'express';
-import {
-  mountGet,
-  ApienceGetHandler,
-  registerApienceObjectDoc,
-  ApienceObjectDoc
-} from '@apience/core';
+import { mountGet, ApienceGetHandler, registerApienceObjectDoc, ApienceObjectDoc } from '@apience/core';
 
 // Define your response type
 interface User {
@@ -45,9 +40,9 @@ interface User {
 // Define OpenAPI documentation
 const userDoc = registerApienceObjectDoc<User>({
   $name: 'User',
-  id: {type: 'string', format: 'uuid', text: 'Unique user identifier'},
-  name: {type: 'string', text: 'User full name', minLength: 1, maxLength: 255},
-  email: {type: 'string', format: 'email', text: 'User email address'},
+  id: { type: 'string', format: 'uuid', text: 'Unique user identifier' },
+  name: { type: 'string', text: 'User full name', minLength: 1, maxLength: 255 },
+  email: { type: 'string', format: 'email', text: 'User email address' },
 });
 
 // Define a GET endpoint
@@ -58,7 +53,7 @@ const getUser: ApienceGetHandler<User> = {
     description: 'Retrieve a single user by their ID',
     response: userDoc,
   },
-  async handler({params, req}) {
+  async handler({ params, req }) {
     const userId = params.get('userId');
     // Your business logic here
     return {
@@ -75,7 +70,7 @@ mountGet(app, getUser, 'object');
 
 // Get OpenAPI schema
 app.get('/v1', (req, res) => {
-  const {buildApienceSchemaJsonResponse} = require('@apience/core');
+  const { buildApienceSchemaJsonResponse } = require('@apience/core');
   res.json(JSON.parse(buildApienceSchemaJsonResponse()));
 });
 
@@ -120,25 +115,27 @@ const getUser: ApienceGetHandler<User> = {
 ## Adding Rate Limiting
 
 ```typescript
-import {createRateLimiterMiddleware} from '@apience/rate-limit';
+import { createRateLimiterMiddleware } from '@apience/rate-limit';
 
 const app = express();
 
 // Add rate limiting middleware
-app.use(await createRateLimiterMiddleware({
-  backend: 'memory', // or 'redis', 'mongo'
-  points: {
-    read: 100,  // 100 requests per window
-    write: 10,  // 10 write requests per window
-  },
-  duration: 60, // 60 second window
-}));
+app.use(
+  await createRateLimiterMiddleware({
+    backend: 'memory', // or 'redis', 'mongo'
+    points: {
+      read: 100, // 100 requests per window
+      write: 10, // 10 write requests per window
+    },
+    duration: 60, // 60 second window
+  }),
+);
 ```
 
 ## Adding Request Logging
 
 ```typescript
-import {createApienceTlsMiddleware, createApienceLoggingMiddleware} from '@apience/logging';
+import { createApienceTlsMiddleware, createApienceLoggingMiddleware } from '@apience/logging';
 
 const app = express();
 
@@ -146,10 +143,12 @@ const app = express();
 app.use(createApienceTlsMiddleware());
 
 // Add logging middleware
-app.use(createApienceLoggingMiddleware({
-  enableConsole: true,
-  sensitiveFields: ['password', 'secret'],
-}));
+app.use(
+  createApienceLoggingMiddleware({
+    enableConsole: true,
+    sensitiveFields: ['password', 'secret'],
+  }),
+);
 ```
 
 ## Documentation

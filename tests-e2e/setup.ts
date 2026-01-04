@@ -1,4 +1,4 @@
-import {initializeTestServer, teardownTestServer} from './test-setup';
+import { initializeTestServer, teardownTestServer } from './test-setup';
 
 // Initialize the test server once before all tests
 beforeAll(async () => {

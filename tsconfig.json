@@ -20,7 +20,7 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]

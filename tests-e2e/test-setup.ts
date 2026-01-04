@@ -1,7 +1,7 @@
-import express, {Express} from 'express';
+import express, { Express } from 'express';
 import http from 'http';
-import {createRouteTable} from '../src';
-import {assertTruthy} from '../src/utils/common.utils';
+import { createRouteTable } from '../src';
+import { assertTruthy } from '../src/utils/common.utils';
 
 const TEST_PORT = 3001;
 
@@ -34,7 +34,7 @@ export async function initializeTestServer(): Promise<void> {
 export async function teardownTestServer(): Promise<void> {
   const server = testServer;
   if (initialized && server) {
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(resolve => {
       server.close(() => {
         initialized = false;
         resolve();
@@ -68,7 +68,10 @@ export function getTestPort(): number {
 /**
  * Type-safe response body accessor for test assertions.
  */
-export function getResponseBody(response: { status: number; body: Record<string, unknown> | undefined }): Record<string, unknown> {
+export function getResponseBody(response: {
+  status: number;
+  body: Record<string, unknown> | undefined;
+}): Record<string, unknown> {
   assertTruthy(response.body, 'Response body is empty');
   return response.body;
 }
@@ -78,7 +81,7 @@ export function getResponseBody(response: { status: number; body: Record<string,
  */
 export function getApiResult<T = unknown>(response: { status: number; body: Record<string, unknown> | undefined }): T {
   const body = getResponseBody(response);
-  return (body.result as T);
+  return body.result as T;
 }
 
 /**
@@ -87,7 +90,7 @@ export function getApiResult<T = unknown>(response: { status: number; body: Reco
 export function makeRequest(
   method: string,
   path: string,
-  options?: { body?: unknown; headers?: Record<string, string> }
+  options?: { body?: unknown; headers?: Record<string, string> },
 ): Promise<{ status: number; body: Record<string, unknown> | undefined; headers: Record<string, string | string[]> }> {
   return new Promise((resolve, reject) => {
     const req = http.request(
@@ -101,7 +104,7 @@ export function makeRequest(
           ...options?.headers,
         },
       },
-      (res) => {
+      res => {
         let data = '';
         res.on('data', chunk => (data += chunk));
         res.on('end', () => {
@@ -109,7 +112,7 @@ export function makeRequest(
           try {
             parsedBody = data ? JSON.parse(data) : undefined;
           } catch {
-            parsedBody = {raw: data};
+            parsedBody = { raw: data };
           }
           resolve({
             status: res.statusCode || 500,
@@ -117,7 +120,7 @@ export function makeRequest(
             headers: res.headers as Record<string, string | string[]>,
           });
         });
-      }
+      },
     );
 
     req.on('error', reject);

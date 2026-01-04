@@ -17,7 +17,7 @@
     "lint": "eslint .",
     "test": "jest",
     "webpack": "webpack",
-    "release": "npm run clean && npm run webpack && npm run lint && npm run test && rimraf ./dist/tests && npm publish"
+    "release": "npm run lint && npm run test && npm run clean && npm run webpack && npm publish"
   },
   "keywords": [
     "express",
@@ -44,7 +44,6 @@
     "jest": "^30.2.0",
     "prettier": "^3.7.4",
     "prettier-plugin-organize-imports": "^4.3.0",
-    "rimraf": "^6.0.1",
     "ts-jest": "^29.4.6",
     "ts-loader": "^9.5.2",
     "typescript": "^5.9.3",

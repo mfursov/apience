@@ -82,7 +82,7 @@ export function getApiResult<T = unknown>(response: { status: number; body: Reco
 }
 
 /**
- * Helper to make HTTP requests to the test server.
+ * Makes HTTP requests to the test server.
  */
 export function makeRequest(
   method: string,

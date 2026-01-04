@@ -20,7 +20,7 @@ export interface ApienceResponse<ResponseEntity = unknown> {
   limit?: number;
 }
 
-/** Shorthand to convert Apience response object into a boilerplate ApienceResponse structure. */
+/** Converts an API response value into a standardized ApienceResponse structure. */
 export function response<T = unknown>(result: T): ApienceResponse<T> {
   return { result };
 }

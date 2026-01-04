@@ -52,7 +52,7 @@ export function createApienceTlsMiddleware(config?: ApienceTlsMiddlewareConfig):
 }
 
 /**
- * Default implementation of country code extraction from CloudFront header.
+ * Extracts the country code from CloudFront header.
  * Can be used in createApienceTlsMiddleware config.
  */
 export function extractCountryCodeFromCloudFront(req: ExpressRequest): string | undefined {

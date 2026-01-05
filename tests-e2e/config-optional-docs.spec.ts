@@ -78,6 +78,24 @@ describe('Apience Configuration: Optional Documentation', () => {
       expect(response.status).toBe(200);
       expect(getApiResult<{ value: string }>(response).value).toBe('789');
     });
+
+    it('should NOT throw when URL parameter is missing in optional docs mode', async () => {
+      const routes = getTestRoutes();
+      // Should not throw even though ':missingParam' is not registered
+      routes.get<{ value: string }>({
+        path: 'missing-param/:missingParam',
+        doc: {
+          summary: 'Missing param',
+          description: 'This should not crash',
+          response: { value: { text: 'Value', type: 'string' }, $name: 'MissingParamRes' },
+        },
+        handler: async (ctx) => ({ value: ctx.params.get('missingParam') }),
+      });
+
+      const response = await makeRequest('GET', '/missing-param/123');
+      expect(response.status).toBe(200);
+      expect(getApiResult<{ value: string }>(response).value).toBe('123');
+    });
   });
 
   describe('Strict mode (requireDocs: true)', () => {
@@ -134,6 +152,21 @@ describe('Apience Configuration: Optional Documentation', () => {
       const response = await makeRequest('GET', '/with-doc');
       expect(response.status).toBe(200);
       expect(getApiResult<{ value: string }>(response).value).toBe('success');
+    });
+
+    it('should throw when URL parameter is missing in strict docs mode', () => {
+      const routes = getTestRoutes();
+      expect(() => {
+        routes.get<{ value: string }>({
+          path: 'strict-missing-param/:missingParamStrict',
+          doc: {
+            summary: 'Strict Missing param',
+            description: 'This SHOULD crash',
+            response: { value: { text: 'Value', type: 'string' }, $name: 'StrictMissingParamRes' },
+          },
+          handler: async () => ({ value: 'test' }),
+        });
+      }).toThrow("Invalid URL parameter: 'missingParamStrict'");
     });
   });
 

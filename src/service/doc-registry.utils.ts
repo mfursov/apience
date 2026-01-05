@@ -13,6 +13,7 @@ import {
 } from '../protocol/apience-doc.types';
 import { assertUrlParameter, URL_PARAMETER_INFO } from '../protocol/urls-parameters';
 import { BAD_REQUEST_STATUS } from '../utils/common.utils';
+import { getApienceConfig } from '../config/apience-config';
 
 /** Returns fully qualified $ref path. */
 export function getComponentsSectionPath(ref: string): string {
@@ -170,8 +171,23 @@ export function generateParameterDocs(
   for (const token of tokens) {
     if (token.startsWith(':')) {
       const urlParameter = token.substring(1);
-      assertUrlParameter(urlParameter);
-      const { doc } = URL_PARAMETER_INFO[urlParameter];
+      let info = URL_PARAMETER_INFO[urlParameter];
+
+      if (!info) {
+        if (getApienceConfig().requireDocs) {
+          assertUrlParameter(urlParameter);
+        }
+        // Fallback for optional docs
+        info = {
+          doc: {
+            type: 'string',
+            text: urlParameter,
+            description: `URL parameter ${urlParameter}`,
+          },
+        };
+      }
+
+      const { doc } = info;
       const parameterDoc: OpenAPIV3.ParameterObject = {
         in: 'path',
         name: doc.text,

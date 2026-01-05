@@ -1,9 +1,10 @@
+import { assertString } from 'assertic';
 import { ApienceRequestContext, configureApience, resetApienceConfig } from '../src';
 import { getApiResult, getTestRoutes, makeRequest } from './test-setup';
 
 describe('Apience Configuration: Optional Documentation', () => {
   afterEach(() => {
-    // Reset configuration after each test
+    // Reset configuration after each test.
     resetApienceConfig();
   });
 
@@ -24,7 +25,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       const routes = getTestRoutes();
       routes.post({
         path: 'no-doc-post',
-        validator: { name: (v) => { if (typeof v !== 'string') throw new Error('400: bad'); } },
+        validator: { name: assertString },
         handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
@@ -137,10 +138,10 @@ describe('Apience Configuration: Optional Documentation', () => {
         handler: async () => ({ value: 'ok' }),
       });
 
-      // Switch to strict mode
+      // Switch to strict mode.
       configureApience({ requireDocs: true });
 
-      // New endpoint should require doc
+      // New endpoint should require doc.
       routes = getTestRoutes();
       expect(() => {
         routes.get({
@@ -173,7 +174,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       });
 
       // Verify it works
-      makeRequest('GET', '/permissive-succeeds').then((response) => {
+      makeRequest('GET', '/permissive-succeeds').then(response => {
         expect(response.status).toBe(200);
       });
     });

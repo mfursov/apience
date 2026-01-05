@@ -25,7 +25,11 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.post({
         path: 'items',
-        validator: { name: (v) => { if (typeof v !== 'string') throw new Error('400: bad'); } },
+        validator: {
+          name: v => {
+            if (typeof v !== 'string') throw new Error('400: bad');
+          },
+        },
         handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
@@ -75,7 +79,11 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.post({
         path: 'validate-test',
-        validator: { name: (v) => { if (typeof v !== 'string' || !v) throw new Error('400: name required'); } },
+        validator: {
+          name: v => {
+            if (typeof v !== 'string' || !v) throw new Error('400: name required');
+          },
+        },
         handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
@@ -136,8 +144,8 @@ describe('Apience Core + Auth E2E Integration', () => {
   describe('Authentication', () => {
     it('should deny request without Authorization header', async () => {
       const routes = getTestRoutes();
-      const strategy = new BasicAuthStrategy(
-        async (u, p) => (u === 'admin' && p === 'secret' ? { id: '1', username: u } : null),
+      const strategy = new BasicAuthStrategy(async (u, p) =>
+        u === 'admin' && p === 'secret' ? { id: '1', username: u } : null,
       );
 
       routes.get<{ value: string }>({
@@ -155,8 +163,8 @@ describe('Apience Core + Auth E2E Integration', () => {
 
     it('should allow request with valid credentials', async () => {
       const routes = getTestRoutes();
-      const strategy = new BasicAuthStrategy(
-        async (u, p) => (u === 'user' && p === 'pass' ? { id: 'user-1', username: u } : null),
+      const strategy = new BasicAuthStrategy(async (u, p) =>
+        u === 'user' && p === 'pass' ? { id: 'user-1', username: u } : null,
       );
 
       routes.get<{ value: string }>({
@@ -210,8 +218,9 @@ describe('Apience Core + Auth E2E Integration', () => {
       });
 
       const schema = JSON.parse(buildApienceSchemaJsonResponse());
-      expect(schema.paths['/v1/docs-versioned']).toBeDefined();
-      expect(schema.paths['/v1/docs-versioned'].get.summary).toBe('Versioned v1 endpoint');
+      const v = schema.paths['/v1/docs-versioned'];
+      expect(v).toBeDefined();
+      expect(v.get.summary).toBe('Versioned v1 endpoint');
     });
 
     it('should document POST request/response bodies', async () => {
@@ -229,9 +238,10 @@ describe('Apience Core + Auth E2E Integration', () => {
       });
 
       const schema = JSON.parse(buildApienceSchemaJsonResponse());
-      expect(schema.paths['/docs-post'].post.requestBody).toBeDefined();
-      expect(schema.paths['/docs-post'].post.responses['200']).toBeDefined();
-      expect(schema.paths['/docs-post'].post.responses['400']).toBeDefined();
+      const v = schema.paths['/docs-post'].post;
+      expect(v.requestBody).toBeDefined();
+      expect(v.responses['200']).toBeDefined();
+      expect(v.responses['400']).toBeDefined();
     });
   });
 });

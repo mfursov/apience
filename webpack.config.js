@@ -22,6 +22,13 @@ const tsRule = {
   ],
 };
 
+// External dependencies - these should NOT be bundled
+const externals = {
+  'express': 'express',
+  'assertic': 'assertic',
+  'openapi-types': 'openapi-types',
+};
+
 module.exports = [
   // ------------ CommonJS Build ------------
   {
@@ -35,6 +42,7 @@ module.exports = [
       filename: 'index.cjs.js',
       library: { type: 'commonjs2' },
     },
+    externals,
     resolve: {
       extensions: ['.ts'],
     },
@@ -58,6 +66,7 @@ module.exports = [
     experiments: {
       outputModule: true,
     },
+    externals,
     resolve: {
       extensions: ['.ts'],
     },

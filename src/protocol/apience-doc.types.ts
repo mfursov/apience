@@ -10,6 +10,7 @@
  * We do not use inlined 'object' types: all objects must go into the 'components' section and referenced via '$ref'.
  */
 
+/** List of supported primitive types for documentation. */
 export const APIENCE_DOC_PRIMITIVE_TYPES = ['boolean', 'number', 'string', 'integer'] as const;
 export type ApienceDocPrimitiveValueType = (typeof APIENCE_DOC_PRIMITIVE_TYPES)[number];
 
@@ -132,20 +133,24 @@ export type ApiencePatchHandlerDoc<RequestBodyType, ResponseResultType> = Apienc
 
 export type ApienceDeleteHandlerDoc = ApienceHandlerDocCommon;
 
+/** Checks if the value is a documentation reference field. */
 export function isApienceDocReferenceField(value: unknown): value is ApienceDocRef {
   return (value as ApienceDocRef)?.$name !== undefined;
 }
 
+/** Checks if the value is an array documentation field. */
 export function isApienceDocArrayField(value: unknown): value is ApienceDocField & { type: 'array' } {
   return (value as ApienceDocField).type === 'array';
 }
 
+/** Checks if the value is a primitive documentation field. */
 export function isApienceDocPrimitiveField(
   value: unknown,
 ): value is ApienceDocField & { type: ApienceDocPrimitiveValueType } {
   return isApienceDocPrimitiveType((value as ApienceDocField).type);
 }
 
+/** Checks if the value is a primitive documentation type string. */
 export function isApienceDocPrimitiveType(value: unknown): value is ApienceDocPrimitiveValueType {
   return APIENCE_DOC_PRIMITIVE_TYPES.includes(value as ApienceDocPrimitiveValueType);
 }

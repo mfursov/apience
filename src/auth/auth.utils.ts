@@ -42,7 +42,7 @@ export function createAuthMiddleware<TUser = unknown>(
 }
 
 /**
- * Helper to extract the authenticated user from the request context.
+ * Extracts the authenticated user from the request context.
  * Throws if the user is not present (i.e., authentication was not performed).
  *
  * @template TUser - Type of the authenticated user
@@ -57,7 +57,7 @@ export function getAuthUser<TUser = unknown>(context: ApienceRequestContext): TU
 }
 
 /**
- * Helper to safely extract the authenticated user from the request context.
+ * Safely extracts the authenticated user from the request context.
  * Returns undefined if the user is not present.
  *
  * @template TUser - Type of the authenticated user

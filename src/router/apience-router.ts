@@ -119,6 +119,7 @@ export interface ApienceDeleteHandler extends ApienceHandlerCommon {
   middlewares?: Array<ApienceHandlerMiddleware>;
 }
 
+/** Union type for all route registration info objects. */
 export type RouteRegistrationInfo = (
   | { method: 'get'; handler: ApienceGetHandler | ApienceGetListHandler }
   | { method: 'post'; handler: ApiencePostHandler }
@@ -127,24 +128,30 @@ export type RouteRegistrationInfo = (
   | { method: 'delete'; handler: ApienceDeleteHandler }
 ) & { isArrayResultType?: boolean };
 
+/** Registers a GET route. */
 export const mountGet = (
   app: ExpressApplication,
   handler: ApienceGetHandler | ApienceGetListHandler,
   resultType: 'object' | 'array',
 ): void => mount(app, { method: 'get', handler, isArrayResultType: resultType === 'array' });
 
+/** Registers a POST route. */
 export const mountPost = <Req, Res>(app: ExpressApplication, handler: ApiencePostHandler<Req, Res>): void =>
   mount(app, { method: 'post', handler: handler as ApiencePostHandler });
 
+/** Registers a PATCH route. */
 export const mountPatch = <Req, Res>(app: ExpressApplication, handler: ApiencePatchHandler<Req, Res>): void =>
   mount(app, { method: 'patch', handler: handler as ApiencePatchHandler });
 
+/** Registers a PUT route. */
 export const mountPut = <Req, Res>(app: ExpressApplication, handler: ApiencePutHandler<Req, Res>): void =>
   mount(app, { method: 'put', handler: handler as ApiencePutHandler });
 
+/** Registers a DELETE route. */
 export const mountDelete = (app: ExpressApplication, handler: ApienceDeleteHandler): void =>
   mount(app, { method: 'delete', handler });
 
+/** Mounts a route to the Express application. */
 export function mount(app: ExpressApplication, { method, handler, isArrayResultType }: RouteRegistrationInfo): void {
   const pathPrefix = handler.version ? `/v${handler.version}/` : '/';
   const config = getApienceConfig();

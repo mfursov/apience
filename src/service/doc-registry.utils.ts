@@ -91,6 +91,7 @@ export const apienceOpenApiSchema: OpenAPIV3.Document = {
   },
 };
 
+/** Registers an object documentation schema. */
 export function registerApienceObjectDoc<T extends object = object>(
   objectDoc: ApienceObjectDoc<T>,
 ): ApienceObjectDoc<T> {
@@ -107,11 +108,13 @@ export function registerApienceObjectDoc<T extends object = object>(
   return objectDoc;
 }
 
+/** Registers a request body documentation schema. */
 export function registerRequestDoc(request: ApienceRequestDoc): OpenAPIV3.ReferenceObject {
   registerApienceObjectDoc(request);
   return { $ref: getComponentsSectionPath(request.$name) };
 }
 
+/** Registers a response body documentation schema. */
 export function registerResponseDoc(
   response: ApienceResponseDoc,
   isArrayResultType: boolean,

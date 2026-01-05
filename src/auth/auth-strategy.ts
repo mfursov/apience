@@ -27,7 +27,7 @@ export class BasicAuthStrategy<TUser = unknown> implements AuthStrategy<{ userna
   ) {}
 
   /**
-   * Extract username and password from Basic auth header.
+   * Extracts username and password from Basic auth header.
    * Expected format: "Basic base64(username:password)"
    */
   extractCredentials(req: ExpressRequest): { username: string; password: string } {
@@ -50,7 +50,7 @@ export class BasicAuthStrategy<TUser = unknown> implements AuthStrategy<{ userna
   }
 
   /**
-   * Validate the extracted credentials using the provided validation function.
+   * Validates the extracted credentials using the provided validation function.
    */
   async validateCredentials({ username, password }: { username: string; password: string }): Promise<TUser> {
     const user = await this.validateFn(username, password);
@@ -59,7 +59,7 @@ export class BasicAuthStrategy<TUser = unknown> implements AuthStrategy<{ userna
   }
 
   /**
-   * Perform optional authorization check.
+   * Performs optional authorization check.
    */
   async authorize(user: TUser, req: ExpressRequest, handler: ApienceHandlerCommon): Promise<void> {
     if (this.authorizeFn) {

@@ -2,26 +2,25 @@ import { OpenAPIV3 } from 'openapi-types';
 import { ApienceHandlerDocCommon, ApienceRequestDoc, ApienceResponseDoc } from '../protocol/apience-doc.types';
 import { ApienceHttpMethod } from '../protocol/apience.types';
 import {
-  apienceV1Schema3Response,
+  apienceOpenApiSchema,
   generateParameterDocs,
   registerRequestDoc,
   registerResponseDoc,
 } from '../service/apience-doc-registry.utils';
-import { assertTruthy, truthy } from '../utils/common.utils';
+import { truthy } from '../utils/common.utils';
 
 type ApienceHandlerDoc = ApienceHandlerDocCommon & {
   request?: ApienceRequestDoc;
   response?: ApienceResponseDoc;
 };
 
-export function registerV1EndpointDocs(
+export function registerApiEndpointDocs(
   httpMethod: ApienceHttpMethod,
   path: string,
   doc: ApienceHandlerDoc,
   isArrayResultType: boolean,
 ): void {
-  assertTruthy(path.startsWith('/v1/'), () => `Only '/v1/*' schema methods are supported: ${path}`);
-  const paths = truthy(apienceV1Schema3Response.paths);
+  const paths = truthy(apienceOpenApiSchema.paths);
   paths[path] = {
     ...(paths[path] || {}),
     [httpMethod]: <OpenAPIV3.PathsObject>{
@@ -37,12 +36,12 @@ export function registerV1EndpointDocs(
 }
 
 export function buildApienceSchemaJsonResponse(): string {
-  if (!apienceV1Schema3Response.info.contact) {
-    const _apiHash = JSON.stringify(apienceV1Schema3Response, null, 2).length;
-    apienceV1Schema3Response.info.contact = {
+  if (!apienceOpenApiSchema.info.contact) {
+    const _apiHash = JSON.stringify(apienceOpenApiSchema, null, 2).length;
+    apienceOpenApiSchema.info.contact = {
       name: 'API Support',
       url: 'https://example.com/docs',
     };
   }
-  return JSON.stringify(apienceV1Schema3Response, null, 2);
+  return JSON.stringify(apienceOpenApiSchema, null, 2);
 }

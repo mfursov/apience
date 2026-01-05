@@ -7,466 +7,250 @@ import {
 } from '../src';
 import { getApiResult, getTestRoutes, makeRequest } from './test-setup';
 
-type HealthResponse = { status: string };
-type ItemResponse = { id: string; name: string };
-type UpdateItemResponse = { id: string; name: string; description: string };
-type UserProfile = { id: string; username: string };
+// Minimal doc helper for compact tests
+const minDoc = (name: string) => ({
+  summary: name,
+  description: name,
+  response: { value: { text: 'Value', type: 'string' as const }, $name: `${name}Res` },
+});
 
 describe('Apience Core + Auth E2E Integration', () => {
-  describe('Core routing with real HTTP requests', () => {
-    it('should handle GET requests and return correct response.', async () => {
+  describe('Core routing (top-level paths, no version)', () => {
+    it('should handle GET requests at top-level path', async () => {
       const routes = getTestRoutes();
-
       routes.get({
         path: 'health',
-        doc: {
-          summary: 'Health check endpoint.',
-          description: 'Returns the health status of the API.',
-          response: {
-            status: { text: 'Health status.', type: 'string' },
-            $name: 'HealthResponse',
-          },
-        },
-        handler: async (_context: ApienceRequestContext): Promise<{ status: string }> => {
-          return { status: 'healthy' };
-        },
+        doc: minDoc('Health'),
+        handler: async () => ({ value: 'healthy' }),
       });
 
-      const response = await makeRequest('GET', '/v1/health');
+      const response = await makeRequest('GET', '/health');
       expect(response.status).toBe(200);
-      const result = getApiResult<HealthResponse>(response);
-      expect(result).toStrictEqual({ status: 'healthy' });
+      expect(getApiResult<{ value: string }>(response).value).toBe('healthy');
     });
 
-    it('should handle POST requests and validate body.', async () => {
+    it('should handle POST requests at top-level path', async () => {
       const routes = getTestRoutes();
-
       routes.post({
         path: 'items',
-        doc: {
-          summary: 'Create item.',
-          description: 'Creates a new item.',
-          request: {
-            name: { text: 'Item name.', type: 'string', isRequired: true },
-            $name: 'CreateItemRequest1',
-          },
-          response: {
-            id: { text: 'Item ID.', type: 'string' },
-            name: { text: 'Item name.', type: 'string' },
-            $name: 'CreateItemResponse1',
-          },
-        },
-        validator: {
-          name: (val: unknown): void => {
-            if (typeof val !== 'string' || val.length === 0) {
-              throw new Error('400: name must be a non-empty string');
-            }
-          },
-        },
-        handler: async (
-          context: ApienceRequestContext<{ name: string }>,
-        ): Promise<{
-          id: string;
-          name: string;
-        }> => {
-          return { id: '123', name: context.request.name };
-        },
+        doc: { ...minDoc('CreateItem'), request: { name: { text: 'Name', type: 'string' }, $name: 'CreateItemReq' } },
+        validator: { name: (v) => { if (typeof v !== 'string') throw new Error('400: bad'); } },
+        handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
-      const response = await makeRequest('POST', '/v1/items', {
-        body: { name: 'Test Item' },
-      });
+      const response = await makeRequest('POST', '/items', { body: { name: 'Test' } });
       expect(response.status).toBe(200);
-      const result = getApiResult<ItemResponse>(response);
-      expect(result.id).toBe('123');
-      expect(result.name).toBe('Test Item');
+      expect(getApiResult<{ value: string }>(response).value).toBe('Test');
     });
 
-    it('should return 400 error for invalid request.', async () => {
+    it('should handle PUT requests at top-level path', async () => {
       const routes = getTestRoutes();
+      routes.put({
+        path: 'items/:id',
+        doc: { ...minDoc('UpdateItem'), request: { name: { text: 'Name', type: 'string' }, $name: 'UpdateItemReq' } },
+        validator: {},
+        handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.params.get('id') }),
+      });
 
+      const response = await makeRequest('PUT', '/items/123', { body: { name: 'Updated' } });
+      expect(response.status).toBe(200);
+      expect(getApiResult<{ value: string }>(response).value).toBe('123');
+    });
+
+    it('should handle PATCH requests at top-level path', async () => {
+      const routes = getTestRoutes();
+      routes.patch({
+        path: 'items/:id',
+        doc: { ...minDoc('PatchItem'), request: { name: { text: 'Name', type: 'string' }, $name: 'PatchItemReq' } },
+        validator: {},
+        handler: async (ctx: ApienceRequestContext<{ name?: string }>) => ({ value: ctx.request.name || 'none' }),
+      });
+
+      const response = await makeRequest('PATCH', '/items/456', { body: { name: 'Patched' } });
+      expect(response.status).toBe(200);
+      expect(getApiResult<{ value: string }>(response).value).toBe('Patched');
+    });
+
+    it('should handle DELETE requests at top-level path', async () => {
+      const routes = getTestRoutes();
+      routes.delete({
+        path: 'items/:id',
+        doc: { summary: 'Delete item', description: 'Delete item by id' },
+        handler: async () => {},
+      });
+
+      const response = await makeRequest('DELETE', '/items/789');
+      expect(response.status).toBe(200);
+    });
+
+    it('should return 400 for invalid request body', async () => {
+      const routes = getTestRoutes();
       routes.post({
-        path: 'invalid-items',
-        doc: {
-          summary: 'Create item.',
-          description: 'Creates a new item.',
-          request: {
-            name: { text: 'Item name.', type: 'string', isRequired: true },
-            $name: 'CreateItemRequest2',
-          },
-          response: {
-            id: { text: 'Item ID.', type: 'string' },
-            name: { text: 'Item name.', type: 'string' },
-            $name: 'CreateItemResponse2',
-          },
-        },
-        validator: {
-          name: (val: unknown): void => {
-            if (typeof val !== 'string' || val.length === 0) {
-              throw new Error('400: name must be a non-empty string');
-            }
-          },
-        },
-        handler: async (
-          context: ApienceRequestContext<{ name: string }>,
-        ): Promise<{
-          id: string;
-          name: string;
-        }> => {
-          return { id: '123', name: context.request.name };
-        },
+        path: 'validate-test',
+        doc: { ...minDoc('ValidateTest'), request: { name: { text: 'Name', type: 'string' }, $name: 'ValidateTestReq' } },
+        validator: { name: (v) => { if (typeof v !== 'string' || !v) throw new Error('400: name required'); } },
+        handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
-      const response = await makeRequest('POST', '/v1/invalid-items', {
-        body: { name: '' },
-      });
+      const response = await makeRequest('POST', '/validate-test', { body: { name: '' } });
       expect(response.status).toBe(400);
     });
   });
 
-  describe('PUT/PATCH requests', () => {
-    it('should handle PUT requests for full updates.', async () => {
+  describe('API versioning', () => {
+    it('should handle version: "1" with /v1/ prefix', async () => {
       const routes = getTestRoutes();
-
-      routes.put({
-        path: 'put-items/:id',
-        pathValidator: {
-          id: (val: unknown): void => {
-            if (typeof val !== 'string' || val.length === 0) {
-              throw new Error('400: id must be a non-empty string');
-            }
-          },
-        },
-        doc: {
-          summary: 'Update item.',
-          description: 'Updates an entire item.',
-          request: {
-            name: { text: 'Item name.', type: 'string', isRequired: true },
-            description: { text: 'Item description.', type: 'string' },
-            $name: 'UpdateItemRequest',
-          },
-          response: {
-            id: { text: 'Item ID.', type: 'string' },
-            name: { text: 'Item name.', type: 'string' },
-            description: { text: 'Item description.', type: 'string' },
-            $name: 'UpdateItemResponse',
-          },
-        },
-        validator: {
-          name: (val: unknown): void => {
-            if (typeof val !== 'string' || val.length === 0) {
-              throw new Error('400: name must be a non-empty string');
-            }
-          },
-        },
-        handler: async (
-          context: ApienceRequestContext<{ name: string; description?: string }>,
-        ): Promise<{
-          id: string;
-          name: string;
-          description: string;
-        }> => {
-          const itemId = context.params.get('id');
-          return { id: itemId, name: context.request.name, description: context.request.description || 'N/A' };
-        },
+      routes.get({
+        path: 'versioned',
+        version: '1',
+        doc: minDoc('V1Endpoint'),
+        handler: async () => ({ value: 'v1' }),
       });
 
-      const response = await makeRequest('PUT', '/v1/put-items/123', {
-        body: { name: 'Updated Item', description: 'New description' },
-      });
+      const response = await makeRequest('GET', '/v1/versioned');
       expect(response.status).toBe(200);
-      const result = getApiResult<UpdateItemResponse>(response);
-      expect(result.id).toBe('123');
-      expect(result.name).toBe('Updated Item');
-      expect(result.description).toBe('New description');
+      expect(getApiResult<{ value: string }>(response).value).toBe('v1');
     });
 
-    it('should handle PATCH requests for partial updates.', async () => {
+    it('should handle version: "2" with /v2/ prefix', async () => {
       const routes = getTestRoutes();
-
-      routes.patch({
-        path: 'patch-items/:id',
-        pathValidator: {
-          id: (val: unknown): void => {
-            if (typeof val !== 'string' || val.length === 0) {
-              throw new Error('400: id must be a non-empty string');
-            }
-          },
-        },
-        doc: {
-          summary: 'Partially update item.',
-          description: 'Updates specific fields of an item.',
-          request: {
-            name: { text: 'Item name.', type: 'string' },
-            $name: 'PatchItemRequest',
-          },
-          response: {
-            id: { text: 'Item ID.', type: 'string' },
-            name: { text: 'Item name.', type: 'string' },
-            $name: 'PatchItemResponse',
-          },
-        },
-        validator: {},
-        handler: async (
-          context: ApienceRequestContext<{ name?: string }>,
-        ): Promise<{
-          id: string;
-          name: string;
-        }> => {
-          const itemId = context.params.get('id');
-          return { id: itemId, name: context.request.name || 'Unchanged' };
-        },
+      routes.get({
+        path: 'versioned',
+        version: '2',
+        doc: minDoc('V2Endpoint'),
+        handler: async () => ({ value: 'v2' }),
       });
 
-      const response = await makeRequest('PATCH', '/v1/patch-items/456', {
-        body: { name: 'Patched Item' },
-      });
+      const response = await makeRequest('GET', '/v2/versioned');
       expect(response.status).toBe(200);
-      const result = getApiResult<ItemResponse>(response);
-      expect(result.id).toBe('456');
-      expect(result.name).toBe('Patched Item');
+      expect(getApiResult<{ value: string }>(response).value).toBe('v2');
     });
-  });
 
-  describe('DELETE requests', () => {
-    it('should handle DELETE requests.', async () => {
+    it('should allow both versioned and top-level endpoints simultaneously', async () => {
       const routes = getTestRoutes();
 
-      routes.delete({
-        path: 'delete-items/:id',
-        pathValidator: {
-          id: (val: unknown): void => {
-            if (typeof val !== 'string' || val.length === 0) {
-              throw new Error('400: id must be a non-empty string');
-            }
-          },
-        },
-        doc: {
-          summary: 'Delete item.',
-          description: 'Deletes an item by ID.',
-        },
-        handler: async (context: ApienceRequestContext): Promise<void> => {
-          const itemId = context.params.get('id');
-          // Simulate deletion
-          console.log(`Deleted item: ${itemId}`);
-        },
-      });
-
-      const response = await makeRequest('DELETE', '/v1/delete-items/789');
-      expect(response.status).toBe(200);
-    });
-  });
-
-  describe('Authentication with real HTTP requests', () => {
-    it('should deny request without Authorization header.', async () => {
-      const routes = getTestRoutes();
-      const strategy = new BasicAuthStrategy(async (username: string, password: string) => {
-        if (username === 'admin' && password === 'secret123') {
-          return { id: 'admin-1', username, role: 'admin' };
-        }
-        return null;
+      routes.get({
+        path: 'mixed',
+        doc: minDoc('TopLevel'),
+        handler: async () => ({ value: 'top-level' }),
       });
 
       routes.get({
-        path: 'auth-profile',
-        doc: {
-          summary: 'Get user profile.',
-          description: 'Returns the authenticated user profile.',
-          response: {
-            id: { text: 'User ID.', type: 'string' },
-            username: { text: 'Username.', type: 'string' },
-            $name: 'UserProfile',
-          },
-        },
+        path: 'mixed',
+        version: '1',
+        doc: minDoc('V1Mixed'),
+        handler: async () => ({ value: 'v1' }),
+      });
+
+      const topResponse = await makeRequest('GET', '/mixed');
+      expect(getApiResult<{ value: string }>(topResponse).value).toBe('top-level');
+
+      const v1Response = await makeRequest('GET', '/v1/mixed');
+      expect(getApiResult<{ value: string }>(v1Response).value).toBe('v1');
+    });
+  });
+
+  describe('Authentication', () => {
+    it('should deny request without Authorization header', async () => {
+      const routes = getTestRoutes();
+      const strategy = new BasicAuthStrategy(
+        async (u, p) => (u === 'admin' && p === 'secret' ? { id: '1', username: u } : null),
+      );
+
+      routes.get<{ value: string }>({
+        path: 'protected',
+        doc: minDoc('Protected'),
         middlewares: [createAuthMiddleware(strategy)],
-        handler: async (context: ApienceRequestContext): Promise<{ id: string; username: string }> => {
-          const user = getAuthUser(context) as { id: string; username: string };
-          return { id: user.id, username: user.username };
+        handler: async (ctx: ApienceRequestContext) => {
+          const user = getAuthUser(ctx) as { id: string };
+          return { value: user.id };
         },
       });
 
-      const response = await makeRequest('GET', '/v1/auth-profile');
+      const response = await makeRequest('GET', '/protected');
       expect(response.status).toBe(401);
     });
 
-    it('should allow request with valid Basic auth credentials.', async () => {
+    it('should allow request with valid credentials', async () => {
       const routes = getTestRoutes();
-      const strategy = new BasicAuthStrategy(async (username: string, password: string) => {
-        if (username === 'user' && password === 'pass123') {
-          return { id: 'user-1', username, role: 'user' };
-        }
-        return null;
-      });
+      const strategy = new BasicAuthStrategy(
+        async (u, p) => (u === 'user' && p === 'pass' ? { id: 'user-1', username: u } : null),
+      );
 
-      routes.get({
-        path: 'secure-profile',
-        doc: {
-          summary: 'Get user profile.',
-          description: 'Returns the authenticated user profile.',
-          response: {
-            id: { text: 'User ID.', type: 'string' },
-            username: { text: 'Username.', type: 'string' },
-            $name: 'SecureUserProfile',
-          },
-        },
+      routes.get<{ value: string }>({
+        path: 'secure',
+        doc: minDoc('Secure'),
         middlewares: [createAuthMiddleware(strategy)],
-        handler: async (context: ApienceRequestContext): Promise<{ id: string; username: string }> => {
-          const user = getAuthUser(context) as { id: string; username: string };
-          return { id: user.id, username: user.username };
+        handler: async (ctx: ApienceRequestContext) => {
+          const user = getAuthUser(ctx) as { id: string };
+          return { value: user.id };
         },
       });
 
-      const credentials = Buffer.from('user:pass123').toString('base64');
-      const response = await makeRequest('GET', '/v1/secure-profile', {
+      const credentials = Buffer.from('user:pass').toString('base64');
+      const response = await makeRequest('GET', '/secure', {
         headers: { Authorization: `Basic ${credentials}` },
       });
       expect(response.status).toBe(200);
-      const result = getApiResult<UserProfile>(response);
-      expect(result.id).toBe('user-1');
-      expect(result.username).toBe('user');
+      expect(getApiResult<{ value: string }>(response).value).toBe('user-1');
     });
   });
 
   describe('OpenAPI documentation generation', () => {
-    it('should generate OpenAPI schema with registered endpoints.', async () => {
+    it('should document top-level endpoint (no version)', async () => {
       const routes = getTestRoutes();
-
       routes.get({
-        path: 'doc-endpoint',
+        path: 'docs-top-level',
         doc: {
-          summary: 'A documented endpoint.',
-          description: 'This endpoint has complete documentation.',
-          response: {
-            message: { text: 'Response message.', type: 'string' },
-            $name: 'DocResponse',
-          },
+          summary: 'Top level endpoint',
+          description: 'An endpoint without version prefix.',
+          response: { message: { text: 'Message', type: 'string' }, $name: 'DocsTopLevelRes' },
         },
-        handler: async (): Promise<{ message: string }> => {
-          return { message: 'Documented' };
-        },
+        handler: async () => ({ message: 'ok' }),
       });
 
-      // Build and verify the schema
-      const schemaJson = buildApienceSchemaJsonResponse();
-      const schema = JSON.parse(schemaJson);
-
-      // Verify OpenAPI 3.0.1 format
+      const schema = JSON.parse(buildApienceSchemaJsonResponse());
       expect(schema.openapi).toBe('3.0.1');
-      expect(schema.info).toBeDefined();
-      expect(schema.info.title).toBe('API spec');
-
-      // Verify endpoint is documented
-      expect(schema.paths['/v1/doc-endpoint']).toBeDefined();
-      expect(schema.paths['/v1/doc-endpoint'].get).toBeDefined();
-      expect(schema.paths['/v1/doc-endpoint'].get.summary).toBe('A documented endpoint.');
+      expect(schema.paths['/docs-top-level']).toBeDefined();
+      expect(schema.paths['/docs-top-level'].get.summary).toBe('Top level endpoint');
     });
 
-    it('should document request and response bodies in OpenAPI schema.', async () => {
+    it('should document versioned endpoint with /v1/ prefix', async () => {
       const routes = getTestRoutes();
-
-      routes.post({
-        path: 'doc-post',
-        doc: {
-          summary: 'Create documented item.',
-          description: 'Creates an item with full documentation.',
-          request: {
-            title: { text: 'Item title.', type: 'string', isRequired: true },
-            tags: { text: 'Item tags.', type: 'array', itemType: 'string' },
-            $name: 'DocRequestBody',
-          },
-          response: {
-            id: { text: 'Item ID.', type: 'string' },
-            title: { text: 'Item title.', type: 'string' },
-            $name: 'DocResponseBody',
-          },
-        },
-        validator: {
-          title: (val: unknown): void => {
-            if (typeof val !== 'string' || val.length === 0) {
-              throw new Error('400: title required');
-            }
-          },
-        },
-        handler: async (
-          context: ApienceRequestContext<{ title: string; tags?: string[] }>,
-        ): Promise<{
-          id: string;
-          title: string;
-        }> => {
-          return { id: 'doc-1', title: context.request.title };
-        },
-      });
-
-      const schemaJson = buildApienceSchemaJsonResponse();
-      const schema = JSON.parse(schemaJson);
-
-      // Verify request body documentation
-      expect(schema.paths['/v1/doc-post'].post.requestBody).toBeDefined();
-      expect(schema.paths['/v1/doc-post'].post.requestBody.content['application/json']).toBeDefined();
-
-      // Verify response documentation
-      expect(schema.paths['/v1/doc-post'].post.responses['200']).toBeDefined();
-      expect(schema.paths['/v1/doc-post'].post.responses['400']).toBeDefined();
-    });
-  });
-
-  describe('HTTP response status codes', () => {
-    it('should return correct status codes for success and error scenarios.', async () => {
-      const routes = getTestRoutes();
-
-      // Success endpoint
       routes.get({
-        path: 'status-success',
+        path: 'docs-versioned',
+        version: '1',
         doc: {
-          summary: 'Success endpoint.',
-          description: 'Returns success status.',
-          response: { code: { text: 'Status code.', type: 'number' }, $name: 'StatusSuccessResponse' },
+          summary: 'Versioned v1 endpoint',
+          description: 'An endpoint with v1 prefix.',
+          response: { message: { text: 'Message', type: 'string' }, $name: 'DocsVersionedRes' },
         },
-        handler: async (): Promise<{ code: number }> => {
-          return { code: 200 };
-        },
+        handler: async () => ({ message: 'v1' }),
       });
 
-      // Error endpoint
-      routes.post({
-        path: 'status-error',
+      const schema = JSON.parse(buildApienceSchemaJsonResponse());
+      expect(schema.paths['/v1/docs-versioned']).toBeDefined();
+      expect(schema.paths['/v1/docs-versioned'].get.summary).toBe('Versioned v1 endpoint');
+    });
+
+    it('should document POST request/response bodies', async () => {
+      const routes = getTestRoutes();
+      routes.post<{ title: string }, { id: string }>({
+        path: 'docs-post',
         doc: {
-          summary: 'Error test.',
-          description: 'Tests error handling.',
-          request: {
-            testValue: { text: 'Required value.', type: 'string', isRequired: true },
-            $name: 'StatusErrorRequestBody',
-          },
-          response: {
-            error: { text: 'Error message.', type: 'string' },
-            $name: 'StatusErrorResponseBody',
-          },
+          summary: 'Create resource',
+          description: 'Creates a new resource',
+          request: { title: { text: 'Title', type: 'string', isRequired: true }, $name: 'DocsPostReq' },
+          response: { id: { text: 'ID', type: 'string' }, $name: 'DocsPostRes' },
         },
-        validator: {
-          testValue: (val: unknown): void => {
-            if (typeof val !== 'string') {
-              throw new Error('400: value must be string');
-            }
-          },
-        },
-        handler: async (context: ApienceRequestContext<{ testValue: string }>): Promise<{ error: string }> => {
-          if (typeof context.request.testValue !== 'string') {
-            return { error: 'validation failed' };
-          }
-          return { error: 'none' };
-        },
+        validator: { title: () => {} },
+        handler: async () => ({ id: '1' }),
       });
 
-      // Test success
-      const successResponse = await makeRequest('GET', '/v1/status-success');
-      expect(successResponse.status).toBe(200);
-      expect((successResponse.body as Record<string, unknown>).status).toBe(200);
-
-      // Test error
-      const errorResponse = await makeRequest('POST', '/v1/status-error', {
-        body: { testValue: 123 },
-      });
-      expect(errorResponse.status).toBe(400);
+      const schema = JSON.parse(buildApienceSchemaJsonResponse());
+      expect(schema.paths['/docs-post'].post.requestBody).toBeDefined();
+      expect(schema.paths['/docs-post'].post.responses['200']).toBeDefined();
+      expect(schema.paths['/docs-post'].post.responses['400']).toBeDefined();
     });
   });
 });

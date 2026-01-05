@@ -76,7 +76,7 @@ function convertToOpenAPIV3Schema(request: ApienceObjectDoc): Record<string, Sch
 }
 
 /** Global object that has documentation about all currently registered endpoints and types. */
-export const apienceV1Schema3Response: OpenAPIV3.Document = {
+export const apienceOpenApiSchema: OpenAPIV3.Document = {
   openapi: '3.0.1',
   info: {
     title: 'API spec',
@@ -93,7 +93,7 @@ export const apienceV1Schema3Response: OpenAPIV3.Document = {
 export function registerApienceObjectDoc<T extends object = object>(
   objectDoc: ApienceObjectDoc<T>,
 ): ApienceObjectDoc<T> {
-  const schemas = truthy(apienceV1Schema3Response.components?.schemas as Record<string, OpenAPIV3.SchemaObject>);
+  const schemas = truthy(apienceOpenApiSchema.components?.schemas as Record<string, OpenAPIV3.SchemaObject>);
   const oldObjectDoc = uniqueApienceObjectDocMap.get(objectDoc.$name);
   assertTruthy(
     oldObjectDoc === undefined || oldObjectDoc === objectDoc,

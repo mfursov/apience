@@ -1,193 +1,114 @@
 # Apience
 
-A lightweight Express.js framework extension with built-in OpenAPI 3.0 documentation and validation, designed for building robust REST APIs with TypeScript.
-
-## Features
-
-- **Type-Safe Routing**: Fully typed handler definitions with automatic OpenAPI documentation generation
-- **Database-Agnostic**: No built-in database coupling - integrate with your database of choice for authentication or rate limiting
-- **Modular Architecture**: Core framework + optional plugins for auth, rate-limiting, and logging
-- **Extensible Middleware**: Generic middleware hooks for adding cross-cutting concerns
-- **Automatic OpenAPI Docs**: Type-driven OpenAPI 3.0.1 schema generation
-- **Request Context**: Generic, type-safe request context with extensible storage
+Type-safe Express.js routing with automatic OpenAPI 3.0 documentation.
 
 ## Installation
 
 ```bash
-npm install apience
+npm install apience express
 ```
 
 ## Quick Start
 
 ```typescript
 import express from 'express';
-import { createRouteTable, buildApienceSchemaJsonResponse, ApienceRequestContext } from 'apience';
+import { createRouteTable, buildApienceSchemaJsonResponse } from 'apience';
 
-// Define your response type
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-// Create Express app
 const app = express();
 app.use(express.json());
 
-// Create route table
 const routes = createRouteTable(app);
 
-// Define a GET endpoint
-routes.get<User | User[]>({
-  path: 'users/:userId',
+// GET /users/:id
+routes.get<{ id: string; name: string }>({
+  path: 'users/:id',
   doc: {
-    summary: 'Get user by ID',
-    description: 'Retrieve a single user by their ID',
+    summary: 'Get user',
+    description: 'Get user by ID',
     response: {
       id: { text: 'User ID', type: 'string' },
-      name: { text: 'User name', type: 'string' },
-      email: { text: 'User email', type: 'string', format: 'email' },
+      name: { text: 'Name', type: 'string' },
       $name: 'User',
     },
   },
-  handler: async (context: ApienceRequestContext): Promise<User> => {
-    const userId = context.params.get('userId');
-    // Your business logic here
-    return {
-      id: userId,
-      name: 'John Doe',
-      email: 'john@example.com',
-    };
-  },
+  handler: async (ctx) => ({
+    id: ctx.params.get('id'),
+    name: 'John',
+  }),
 });
 
-// Define a POST endpoint
-routes.post<{ name: string }, User>({
+// POST /users
+routes.post<{ name: string }, { id: string }>({
   path: 'users',
   doc: {
     summary: 'Create user',
-    description: 'Create a new user',
-    request: {
-      name: { text: 'User name', type: 'string', isRequired: true },
-      email: { text: 'User email', type: 'string', format: 'email', isRequired: true },
-      $name: 'CreateUserRequest',
-    },
-    response: {
-      id: { text: 'User ID', type: 'string' },
-      name: { text: 'User name', type: 'string' },
-      email: { text: 'User email', type: 'string', format: 'email' },
-      $name: 'User',
-    },
+    description: 'Create new user',
+    request: { name: { text: 'Name', type: 'string' }, $name: 'CreateUserReq' },
+    response: { id: { text: 'ID', type: 'string' }, $name: 'CreateUserRes' },
   },
-  handler: async (context: ApienceRequestContext<{ name: string }>): Promise<User> => {
-    return {
-      id: '123',
-      name: context.request.name,
-      email: 'john@example.com',
-    };
-  },
+  validator: { name: (v) => { if (!v) throw new Error('400: name required'); } },
+  handler: async (ctx) => ({ id: '123' }),
 });
 
-// Get OpenAPI schema
-app.get('/v1', (_req, res) => {
-  res.json(JSON.parse(buildApienceSchemaJsonResponse()));
-});
+// OpenAPI schema endpoint
+app.get('/openapi', (_, res) => res.json(JSON.parse(buildApienceSchemaJsonResponse())));
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
-  console.log('OpenAPI docs: http://localhost:3000/v1');
-});
+app.listen(3000);
 ```
 
-## Adding Authentication
+## API Versioning
+
+```typescript
+// Top-level: GET /users
+routes.get({ path: 'users', doc: {...}, handler: ... });
+
+// Versioned: GET /v1/users
+routes.get({ path: 'users', version: '1', doc: {...}, handler: ... });
+
+// Versioned: GET /v2/users
+routes.get({ path: 'users', version: '2', doc: {...}, handler: ... });
+```
+
+## Authentication
 
 ```typescript
 import { createAuthMiddleware, BasicAuthStrategy, getAuthUser } from 'apience';
 
-// Create Express app and route table
-const app = express();
-app.use(express.json());
-const routes = createRouteTable(app);
+const auth = new BasicAuthStrategy(async (user, pass) =>
+  user === 'admin' && pass === 'secret' ? { id: '1', role: 'admin' } : null
+);
 
-// Define Basic Auth strategy
-const basicAuth = new BasicAuthStrategy(async (username: string, password: string) => {
-  // Your validation logic
-  if (username === 'admin' && password === 'secret') {
-    return { id: 'admin-1', username, role: 'admin' };
-  }
-  return null;
-});
-
-// Add authentication to an endpoint
-routes.get<User>({
+routes.get({
   path: 'profile',
-  doc: {
-    summary: 'Get user profile',
-    description: 'Returns the authenticated user profile',
-    response: {
-      id: { text: 'User ID', type: 'string' },
-      username: { text: 'Username', type: 'string' },
-      $name: 'UserProfile',
-    },
-  },
-  middlewares: [createAuthMiddleware(basicAuth)],
-  handler: async (context: ApienceRequestContext): Promise<User> => {
-    const user = getAuthUser(context);
-    return { id: user.id, username: user.username, email: 'admin@example.com' };
+  doc: {...},
+  middlewares: [createAuthMiddleware(auth)],
+  handler: async (ctx) => {
+    const user = getAuthUser(ctx);
+    return { id: user.id };
   },
 });
 ```
 
-## Adding Rate Limiting
+## Rate Limiting
 
 ```typescript
 import { createRateLimiterMiddleware } from 'apience';
 
-const app = express();
-
-// Add rate limiting middleware
-app.use(
-  createRateLimiterMiddleware({
-    points: 100, // 100 requests per window
-    duration: 60, // 60 second window
-  }),
-);
+app.use(await createRateLimiterMiddleware({
+  points: { read: 100, write: 50 },
+  duration: 60,
+}));
 ```
 
-## Adding Request Logging
+## Request Logging
 
 ```typescript
 import { createApienceTlsMiddleware, createApienceLoggingMiddleware } from 'apience';
 
-const app = express();
-
-// Initialize thread-local storage for request tracking
 app.use(createApienceTlsMiddleware());
-
-// Add logging middleware
-app.use(
-  createApienceLoggingMiddleware({
-    enableConsole: true,
-    sensitiveFields: ['password', 'secret'],
-  }),
-);
+app.use(createApienceLoggingMiddleware({ enableConsole: true }));
 ```
-
-## Architecture
-
-Apience follows a modular plugin architecture:
-
-1. **apience** - The foundation providing routing, validation, and OpenAPI docs
-2. **Middleware Hooks** - Handlers can include optional middleware for auth, logging, transactions, etc.
-3. **Extensible Context** - A generic key-value context Map for middleware to share data
-4. **No Database Coupling** - Your handler logic connects to any database
-
-This design keeps the framework lightweight while remaining flexible and powerful.
 
 ## License
 
 MIT
-
-## Support
-
-For issues, questions, or contributions, please visit the repository.

@@ -5,7 +5,7 @@ import { ApienceResponse, ApienceUrlTokensValidator } from '../protocol/apience.
 import { wrapAsApienceResponse } from '../utils/apience-conversion.utils';
 import { assertTruthy, BAD_REQUEST, ObjectValidator, validateObject, ValueValidator } from '../utils/common.utils';
 import { ExpressApplication, ExpressRequest, ExpressResponse } from '../utils/express.utils';
-import { registerV1EndpointDocs } from './apience-route-docs-handler';
+import { registerApiEndpointDocs } from './apience-route-docs-handler';
 
 /** Common part of all Apience route descriptors. */
 export interface ApienceHandlerCommon {
@@ -144,8 +144,8 @@ export const mountDelete = (app: ExpressApplication, handler: ApienceDeleteHandl
   mount(app, { method: 'delete', handler });
 
 export function mount(app: ExpressApplication, { method, handler, isArrayResultType }: RouteRegistrationInfo): void {
-  const pathPrefix = `/v${handler.version || '1'}/`;
-  registerV1EndpointDocs(method, pathPrefix + handler.path, handler.doc, !!isArrayResultType);
+  const pathPrefix = handler.version ? `/v${handler.version}/` : '/';
+  registerApiEndpointDocs(method, pathPrefix + handler.path, handler.doc, !!isArrayResultType);
   const path = `${pathPrefix}${handler.path}`;
   console.log(`${`${method.toUpperCase()}     `.substring(0, 8)} ${path}`);
   app[method](

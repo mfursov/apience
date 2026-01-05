@@ -1,9 +1,8 @@
+import { assertTruthy } from 'assertic';
 import express, { Express } from 'express';
 import http from 'http';
-import { assertTruthy } from 'assertic';
+import { AddressInfo } from 'net';
 import { createRouteTable } from '../src';
-
-const TEST_PORT = 3001;
 
 /**
  * Shared test server that is created once and reused across all e2e tests.
@@ -11,6 +10,7 @@ const TEST_PORT = 3001;
  */
 let testApp: Express | undefined;
 let testServer: http.Server | undefined;
+let testPort: number | undefined;
 let initialized = false;
 
 /**
@@ -24,8 +24,15 @@ export async function initializeTestServer(): Promise<void> {
   const app = express();
   app.use(express.json());
   testApp = app;
-  testServer = app.listen(TEST_PORT);
-  initialized = true;
+
+  await new Promise<void>(resolve => {
+    testServer = app.listen(0, '127.0.0.1', () => {
+      const address = testServer?.address() as AddressInfo;
+      testPort = address.port;
+      initialized = true;
+      resolve();
+    });
+  });
 }
 
 /**
@@ -62,7 +69,8 @@ export function getTestRoutes(): ReturnType<typeof createRouteTable> {
  * Get the port the test server is running on.
  */
 export function getTestPort(): number {
-  return TEST_PORT;
+  assertTruthy(testPort, 'Test server not initialized. Call initializeTestServer first.');
+  return testPort;
 }
 
 /**
@@ -96,8 +104,8 @@ export function makeRequest(
     const req = http.request(
       {
         method,
-        hostname: 'localhost',
-        port: TEST_PORT,
+        hostname: '127.0.0.1',
+        port: getTestPort(),
         path,
         headers: {
           'Content-Type': 'application/json',

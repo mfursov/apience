@@ -2,6 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  maxWorkers: 10,
   testMatch: ['**/?(*.)+(spec).ts'],
   projects: [
     {

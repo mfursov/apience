@@ -5,8 +5,17 @@ import {
   buildApienceSchemaJsonResponse,
   createAuthMiddleware,
   getAuthUser,
+  registerUrlParameter,
 } from '../src';
 import { getApiResult, getTestRoutes, makeRequest } from './test-setup';
+
+registerUrlParameter('id', {
+  doc: {
+    type: 'string',
+    text: 'ID',
+    description: 'Resource ID.',
+  },
+});
 
 describe('Apience Core + Auth E2E Integration', () => {
   describe('Core routing (top-level paths, no version)', () => {
@@ -230,7 +239,7 @@ describe('Apience Core + Auth E2E Integration', () => {
           request: { title: { text: 'Title', type: 'string', isRequired: true }, $name: 'DocsPostReq' },
           response: { id: { text: 'ID', type: 'string' }, $name: 'DocsPostRes' },
         },
-        validator: { title: (v) => assertString(v, '400: title required') },
+        validator: { title: v => assertString(v, '400: title required') },
         handler: async () => ({ id: '1' }),
       });
 
@@ -239,6 +248,21 @@ describe('Apience Core + Auth E2E Integration', () => {
       expect(v.requestBody).toBeDefined();
       expect(v.responses['200']).toBeDefined();
       expect(v.responses['400']).toBeDefined();
+    });
+
+    it('should throw error when using unregistered URL parameter', () => {
+      const routes = getTestRoutes();
+      expect(() => {
+        routes.get({
+          path: 'unregistered/:unknownParam',
+          doc: {
+            summary: 'Invalid endpoint',
+            description: 'Should fail registration',
+            response: { id: { text: 'ID', type: 'string' }, $name: 'UnregisteredRes' },
+          },
+          handler: async () => ({ id: '1' }),
+        });
+      }).toThrow("Invalid URL parameter: 'unknownParam'");
     });
   });
 });

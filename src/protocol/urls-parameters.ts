@@ -9,7 +9,7 @@ export interface UrlParameterInfo {
 /** Default documentation for URL parameters. Can be overridden with 'parameterDescriptionOverride'. */
 export const URL_PARAMETER_INFO: Record<string, UrlParameterInfo> = {};
 
-export function registerUrlParameter(name: string, info: UrlParameterInfo) {
+export function registerUrlParameter(name: string, info: UrlParameterInfo): void {
   URL_PARAMETER_INFO[name] = info;
 }
 

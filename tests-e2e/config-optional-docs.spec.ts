@@ -1,6 +1,14 @@
 import { assertString } from 'assertic';
-import { ApienceRequestContext, configureApience, resetApienceConfig } from '../src';
+import { ApienceRequestContext, configureApience, registerUrlParameter, resetApienceConfig } from '../src';
 import { getApiResult, getTestRoutes, makeRequest } from './test-setup';
+
+registerUrlParameter('id', {
+  doc: {
+    type: 'string',
+    text: 'ID',
+    description: 'Resource ID.',
+  },
+});
 
 describe('Apience Configuration: Optional Documentation', () => {
   afterEach(() => {
@@ -151,7 +159,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       }).toThrow('[Apience] Documentation (doc) is required');
     });
 
-    it('should allow switching from strict to permissive mode', () => {
+    it('should allow switching from strict to permissive mode', async () => {
       configureApience({ requireDocs: true });
 
       // Should throw in strict mode
@@ -174,9 +182,8 @@ describe('Apience Configuration: Optional Documentation', () => {
       });
 
       // Verify it works
-      makeRequest('GET', '/permissive-succeeds').then(response => {
-        expect(response.status).toBe(200);
-      });
+      const response = await makeRequest('GET', '/permissive-succeeds');
+      expect(response.status).toBe(200);
     });
   });
 

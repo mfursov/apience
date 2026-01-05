@@ -4,8 +4,8 @@ import { getApienceConfig } from '../config/apience-config';
 import { catchRouteErrors } from '../middleware/catch-all.middleware';
 import { ApienceDeleteHandlerDoc, ApienceGetHandlerDoc, ApiencePostHandlerDoc } from '../protocol/apience-doc.types';
 import { ApienceResponse, ApienceUrlTokensValidator } from '../protocol/apience.types';
-import { wrapAsApienceResponse } from '../utils/conversion.utils';
 import { BAD_REQUEST } from '../utils/common.utils';
+import { wrapAsApienceResponse } from '../utils/conversion.utils';
 import { ExpressApplication, ExpressRequest, ExpressResponse } from '../utils/express.utils';
 import { registerApiEndpointDocs } from './route-docs-handler';
 
@@ -254,7 +254,7 @@ async function runPppHandler<RequestBodyType, ResponseResultType>(
   middlewares?: Array<ApienceHandlerMiddleware>,
 ): Promise<ApienceResponseOrValue<ResponseResultType>> {
   const apienceRequest = requestContext.req.body as unknown;
-  
+
   // If validator is empty object {}, allow unknown fields
   const isEmptyValidator = Object.keys(handler.validator).length === 0;
   const error = validateObject(apienceRequest, handler.validator, `${BAD_REQUEST}: request body`, {

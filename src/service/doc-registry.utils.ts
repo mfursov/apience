@@ -11,7 +11,7 @@ import {
   isApienceDocPrimitiveType,
   isApienceDocReferenceField,
 } from '../protocol/apience-doc.types';
-import { assertUrlParameter, URL_PARAMETER_INFO, UrlParameter } from '../protocol/urls-parameters';
+import { assertUrlParameter, URL_PARAMETER_INFO } from '../protocol/urls-parameters';
 import { BAD_REQUEST_STATUS } from '../utils/common.utils';
 
 /** Returns fully qualified $ref path. */
@@ -160,7 +160,7 @@ export function registerResponseDoc(
  */
 export function generateParameterDocs(
   path: string,
-  overrides: Partial<Record<UrlParameter, string>>,
+  overrides: Partial<Record<string, string>>,
 ): Array<OpenAPIV3.ParameterObject> {
   const result: Array<OpenAPIV3.ParameterObject> = [];
   const tokens = path.split('/');

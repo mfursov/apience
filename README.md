@@ -12,10 +12,15 @@ npm install apience express
 
 ```typescript
 import express from 'express';
-import { createRouteTable, buildApienceSchemaJsonResponse } from 'apience';
+import { createRouteTable, buildApienceSchemaJsonResponse, registerUrlParameter } from 'apience';
 
 const app = express();
 app.use(express.json());
+
+// Register global URL parameters
+registerUrlParameter('id', {
+  doc: { type: 'string', text: 'User ID', description: 'Unique identifier' },
+});
 
 const routes = createRouteTable(app);
 
@@ -31,7 +36,7 @@ routes.get<{ id: string; name: string }>({
       $name: 'User',
     },
   },
-  handler: async (ctx) => ({
+  handler: async ctx => ({
     id: ctx.params.get('id'),
     name: 'John',
   }),
@@ -46,8 +51,12 @@ routes.post<{ name: string }, { id: string }>({
     request: { name: { text: 'Name', type: 'string' }, $name: 'CreateUserReq' },
     response: { id: { text: 'ID', type: 'string' }, $name: 'CreateUserRes' },
   },
-  validator: { name: (v) => { assertTruthy(v, '400: name required'); } }, // import { assertTruthy } from 'assertic'
-  handler: async (ctx) => ({ id: '123' }),
+  validator: {
+    name: v => {
+      assertTruthy(v, '400: name required');
+    },
+  }, // import { assertTruthy } from 'assertic'
+  handler: async ctx => ({ id: '123' }),
 });
 
 // OpenAPI schema endpoint
@@ -55,6 +64,31 @@ app.get('/openapi', (_, res) => res.json(JSON.parse(buildApienceSchemaJsonRespon
 
 app.listen(3000);
 ```
+
+## URL Parameters
+
+All URL parameters (e.g., `:id`, `:userId`) must be registered globally before use. This ensures they are correctly validated and documented in OpenAPI.
+
+```typescript
+import { registerUrlParameter } from 'apience';
+
+// Simple string parameter
+registerUrlParameter('slug', {
+  doc: { type: 'string', text: 'Slug', description: 'Article slug' },
+});
+
+// UUID parameter
+registerUrlParameter('organizationId', {
+  doc: { type: 'string', text: 'Org ID', description: 'Organization UUID', format: 'uuid' },
+});
+
+// Integer parameter
+registerUrlParameter('limit', {
+  doc: { type: 'integer', text: 'Limit', description: 'Items per page' },
+});
+```
+
+Using an unregistered parameter in a route path will throw an error.
 
 ## Configuration
 
@@ -99,6 +133,7 @@ routes.get({
 ```
 
 **Use cases:**
+
 - **Development**: Set `requireDocs: false` for rapid prototyping, optionally use `warnOnMissingDocs: true` to track missing documentation
 - **Production**: Set `requireDocs: true` to ensure all endpoints are documented
 - **Gradual migration**: Start with `requireDocs: false` and `warnOnMissingDocs: true`, add docs incrementally, then switch to `requireDocs: true`
@@ -141,10 +176,12 @@ routes.get({
 ```typescript
 import { createRateLimiterMiddleware } from 'apience';
 
-app.use(await createRateLimiterMiddleware({
-  points: { read: 100, write: 50 },
-  duration: 60,
-}));
+app.use(
+  await createRateLimiterMiddleware({
+    points: { read: 100, write: 50 },
+    duration: 60,
+  }),
+);
 ```
 
 ## Request Logging

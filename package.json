@@ -26,8 +26,8 @@
     "clean": "rm -rf dist",
     "format": "prettier --write \"./**/*.{ts,js,md,json}\"",
     "lint": "eslint .",
-    "test": "jest",
     "webpack": "webpack",
+    "test": "jest",
     "release": "npm run lint && npm run test && npm run clean && npm run webpack && npm publish"
   },
   "keywords": [

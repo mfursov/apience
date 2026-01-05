@@ -1,19 +1,21 @@
 import { assertTruthy, truthy } from 'assertic';
 import { OpenAPIV3 } from 'openapi-types';
+import { getApienceConfig } from '../config/apience-config';
+import {
+  isApienceDocArrayField,
+  isApienceDocPrimitiveField,
+  isApienceDocPrimitiveType,
+  isApienceDocReferenceField,
+} from '../protocol/apience-doc.private';
 import {
   ApienceDocField,
   ApienceDocPrimitiveValueType,
   ApienceObjectDoc,
   ApienceRequestDoc,
   ApienceResponseDoc,
-  isApienceDocArrayField,
-  isApienceDocPrimitiveField,
-  isApienceDocPrimitiveType,
-  isApienceDocReferenceField,
 } from '../protocol/apience-doc.types';
-import { assertUrlParameter, URL_PARAMETER_INFO } from '../protocol/urls-parameters';
-import { BAD_REQUEST_STATUS } from '../utils/common.utils';
-import { getApienceConfig } from '../config/apience-config';
+import { assertUrlParameter, URL_PARAMETER_INFO } from '../protocol/urls-parameters.private';
+import { BAD_REQUEST_STATUS } from '../utils/common.private';
 
 /** Returns fully qualified $ref path. */
 export function getComponentsSectionPath(ref: string): string {

@@ -1,5 +1,21 @@
-import { ApienceHandlerCommon } from '../router/apience-router';
 import { ExpressRequest } from '../utils/express.utils';
+
+/**
+ * Interface representing the authenticated user.
+ * Users of the library should use module augmentation to add fields to this interface.
+ *
+ * Example:
+ * ```ts
+ * declare module 'apience' {
+ *   interface ApienceAuthUser {
+ *     id: string;
+ *     roles: string[];
+ *   }
+ * }
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApienceAuthUser {}
 
 /**
  * Generic authentication strategy interface.
@@ -8,16 +24,15 @@ import { ExpressRequest } from '../utils/express.utils';
  * @template TCredentials - The type of credentials extracted from the request
  * @template TUser - The type of the authenticated user/entity
  */
-export interface AuthStrategy<TCredentials = unknown, TUser = unknown> {
+export interface AuthStrategy<TCredentials = unknown, TUser extends ApienceAuthUser = ApienceAuthUser> {
   /**
    * Extracts credentials from the Express request.
    * This might parse Authorization headers, cookies, API keys, etc.
    *
    * @param req - Express request object
-   * @returns Extracted credentials
-   * @throws Error if credentials are malformed or missing
+   * @returns Extracted credentials, or undefined if not found/applicable
    */
-  extractCredentials(req: ExpressRequest): TCredentials;
+  extractCredentials(req: ExpressRequest): TCredentials | undefined;
 
   /**
    * Validates the extracted credentials and returns the authenticated user/entity.
@@ -27,15 +42,4 @@ export interface AuthStrategy<TCredentials = unknown, TUser = unknown> {
    * @throws Error if credentials are invalid
    */
   validateCredentials(credentials: TCredentials): Promise<TUser>;
-
-  /**
-   * Optional authorization check after authentication.
-   * Can enforce role-based access control, feature flags, etc.
-   *
-   * @param user - Authenticated user/entity
-   * @param req - Express request object
-   * @param handler - Handler information for context-aware authorization
-   * @throws Error if authorization fails
-   */
-  authorize?(user: TUser, req: ExpressRequest, handler: ApienceHandlerCommon): Promise<void>;
 }

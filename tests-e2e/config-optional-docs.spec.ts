@@ -89,7 +89,7 @@ describe('Apience Configuration: Optional Documentation', () => {
           description: 'This should not crash',
           response: { value: { text: 'Value', type: 'string' }, $name: 'MissingParamRes' },
         },
-        handler: async (ctx) => ({ value: ctx.params.get('missingParam') }),
+        handler: async ctx => ({ value: ctx.params.get('missingParam') }),
       });
 
       const response = await makeRequest('GET', '/missing-param/123');

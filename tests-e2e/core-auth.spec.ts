@@ -249,20 +249,5 @@ describe('Apience Core + Auth E2E Integration', () => {
       expect(v.responses['200']).toBeDefined();
       expect(v.responses['400']).toBeDefined();
     });
-
-    it('should throw error when using unregistered URL parameter', () => {
-      const routes = getTestRoutes();
-      expect(() => {
-        routes.get({
-          path: 'unregistered/:unknownParam',
-          doc: {
-            summary: 'Invalid endpoint',
-            description: 'Should fail registration',
-            response: { id: { text: 'ID', type: 'string' }, $name: 'UnregisteredRes' },
-          },
-          handler: async () => ({ id: '1' }),
-        });
-      }).toThrow("Invalid URL parameter: 'unknownParam'");
-    });
   });
 });

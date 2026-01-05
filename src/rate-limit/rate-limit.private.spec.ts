@@ -1,8 +1,8 @@
 import { ExpressResponse } from '../utils/express.utils';
+import { addRateLimitHeaders, msToSeconds } from './rate-limit.private';
 import { RateLimitResult } from './rate-limit.types';
-import { addRateLimitHeaders, msToSeconds } from './rate-limit.utils';
 
-describe('apience-rate-limit.utils', () => {
+describe('rate-limit.utils', () => {
   describe('msToSeconds', () => {
     it('should convert milliseconds to seconds with rounding up', () => {
       expect(msToSeconds(1000)).toBe(1);

@@ -1,4 +1,4 @@
-import { INTERNAL_ERROR_STATUS, parseStatusCodeFromErrorMessageToken } from './common.utils';
+import { INTERNAL_ERROR_STATUS, parseStatusCodeFromErrorMessageToken } from './common.private';
 
 describe('common.utils', () => {
   describe('parseStatusCodeFromErrorMessageToken', () => {

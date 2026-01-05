@@ -1,7 +1,7 @@
 import { ApienceResponse } from '../protocol/apience.types';
-import { toApienceDateString, wrapAsApienceResponse } from './conversion.utils';
+import { toApienceDateString, wrapAsApienceResponse } from './conversion.private';
 
-describe('apience-conversion.utils', () => {
+describe('conversion.utils', () => {
   describe('toApienceDateString', () => {
     it('should convert timestamp to ISO 8601 format without milliseconds', () => {
       const timestamp = new Date('2012-07-20T01:19:13.000Z').getTime();

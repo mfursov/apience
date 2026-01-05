@@ -5,12 +5,8 @@ import {
   ApiencePatchHandler,
   ApiencePostHandler,
   ApiencePutHandler,
-  mountDelete,
-  mountGet,
-  mountPatch,
-  mountPost,
-  mountPut,
 } from './apience-router';
+import { mountDelete, mountGet, mountPatch, mountPost, mountPut } from './apience-router.private';
 
 /**
  * Helper utility for organizing and mounting routes.

@@ -1,6 +1,6 @@
 import { assertTruthy } from 'assertic';
 import { ApienceHandlerMiddleware, ApienceRequestContext } from '../router/apience-router';
-import { AuthStrategy } from './auth.types';
+import { ApienceAuthUser, AuthStrategy } from './auth.types';
 
 /**
  * Creates a middleware that enforces authentication using the provided strategy.
@@ -11,7 +11,7 @@ import { AuthStrategy } from './auth.types';
  * @param onSuccess - Optional callback to process authenticated user
  * @returns Apience middleware that enforces authentication
  */
-export function createAuthMiddleware<TUser = unknown>(
+export function createAuthMiddleware<TUser extends ApienceAuthUser = ApienceAuthUser>(
   strategy: AuthStrategy<unknown, TUser>,
   onSuccess?: (user: TUser, context: ApienceRequestContext) => void,
 ): ApienceHandlerMiddleware {
@@ -19,17 +19,15 @@ export function createAuthMiddleware<TUser = unknown>(
     // Extract credentials from request
     const credentials = strategy.extractCredentials(context.req);
 
+    // If no credentials found (and strategy returned undefined), we must deny access here.
+    // In a composite strategy scenario, we might want to try the next strategy, but this helper is for a single strategy enforcement.
+    assertTruthy(credentials, '401 UNAUTHORIZED: No credentials provided or invalid format');
+
     // Validate credentials and get authenticated user
     const user = await strategy.validateCredentials(credentials);
 
     // Store authenticated user in context for the handler to access
     context.context.set('authUser', user);
-
-    // Optional: Perform authorization check
-    if (strategy.authorize) {
-      // Note: handler information is not available here, but can be passed if needed
-      await strategy.authorize(user, context.req, { path: context.req.path });
-    }
 
     // Optional: Call success callback
     if (onSuccess) {
@@ -50,7 +48,7 @@ export function createAuthMiddleware<TUser = unknown>(
  * @returns The authenticated user
  * @throws Error if user is not found in context
  */
-export function getAuthUser<TUser = unknown>(context: ApienceRequestContext): TUser {
+export function getAuthUser<TUser extends ApienceAuthUser = ApienceAuthUser>(context: ApienceRequestContext): TUser {
   const user = context.context.get('authUser');
   assertTruthy(user, '401 UNAUTHORIZED: User not found in context. Did you add auth middleware?');
   return user as TUser;
@@ -64,6 +62,8 @@ export function getAuthUser<TUser = unknown>(context: ApienceRequestContext): TU
  * @param context - Apience request context
  * @returns The authenticated user, or undefined if not found
  */
-export function tryGetAuthUser<TUser = unknown>(context: ApienceRequestContext): TUser | undefined {
+export function tryGetAuthUser<TUser extends ApienceAuthUser = ApienceAuthUser>(
+  context: ApienceRequestContext,
+): TUser | undefined {
   return context.context.get('authUser') as TUser | undefined;
 }

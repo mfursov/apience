@@ -56,6 +56,39 @@ app.get('/openapi', (_, res) => res.json(JSON.parse(buildApienceSchemaJsonRespon
 app.listen(3000);
 ```
 
+## Configuration
+
+### Optional Documentation
+
+By default, endpoint documentation is optional. You can configure Apience to require documentation for all endpoints:
+
+```typescript
+import { configureApience } from 'apience';
+
+// Require documentation (throws error at mount time if missing)
+configureApience({ requireDocs: true });
+
+// Optional documentation (default)
+configureApience({ requireDocs: false });
+```
+
+When `requireDocs` is `true`, any endpoint without a `doc` field will throw an error during route registration:
+
+```typescript
+// This will throw an error if requireDocs is true
+routes.get({
+  path: 'users',
+  handler: async () => ({ users: [] }),
+});
+// Error: [Apience] Documentation (doc) is required for GET /users.
+// Set configureApience({ requireDocs: false }) to disable this check.
+```
+
+**Use cases:**
+- **Development**: Set `requireDocs: false` for rapid prototyping
+- **Production**: Set `requireDocs: true` to ensure all endpoints are documented
+- **Gradual migration**: Start with `requireDocs: false`, add docs incrementally, then switch to `true`
+
 ## API Versioning
 
 ```typescript

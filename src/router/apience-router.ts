@@ -1,4 +1,5 @@
 import * as url from 'url';
+import { getApienceConfig } from '../config/apience-config';
 import { catchRouteErrors } from '../middleware/apience-errors';
 import { ApienceDeleteHandlerDoc, ApienceGetHandlerDoc, ApiencePostHandlerDoc } from '../protocol/apience-doc.types';
 import { ApienceResponse, ApienceUrlTokensValidator } from '../protocol/apience.types';
@@ -64,7 +65,7 @@ export interface ApienceRequestContext<RequestBodyType = void> {
 export interface ApienceGetListHandler<ResponseResultElementType = unknown> extends ApienceHandlerCommon {
   pathValidator?: ApienceUrlTokensValidator;
   queryValidator?: ApienceUrlTokensValidator;
-  doc: ApienceGetHandlerDoc<ResponseResultElementType>;
+  doc?: ApienceGetHandlerDoc<ResponseResultElementType>;
   handler: (context: ApienceRequestContext) => Promise<ApienceResponseOrValue<Array<ResponseResultElementType>>>;
   /** Optional middleware to execute before the handler */
   middlewares?: Array<ApienceHandlerMiddleware>;
@@ -74,7 +75,7 @@ export interface ApienceGetListHandler<ResponseResultElementType = unknown> exte
 export interface ApienceGetHandler<ResponseResultType = unknown> extends ApienceHandlerCommon {
   pathValidator?: ApienceUrlTokensValidator;
   queryValidator?: ApienceUrlTokensValidator;
-  doc: ApienceGetHandlerDoc<ResponseResultType>;
+  doc?: ApienceGetHandlerDoc<ResponseResultType>;
   handler: (context: ApienceRequestContext) => Promise<ApienceResponseOrValue<ResponseResultType>>;
   /** Optional middleware to execute before the handler */
   middlewares?: Array<ApienceHandlerMiddleware>;
@@ -85,7 +86,7 @@ export interface ApiencePostHandler<
   RequestBodyType = unknown,
   ResponseResultType = unknown,
 > extends ApienceHandlerCommon {
-  doc: ApiencePostHandlerDoc<RequestBodyType, ResponseResultType>;
+  doc?: ApiencePostHandlerDoc<RequestBodyType, ResponseResultType>;
   pathValidator?: ApienceUrlTokensValidator;
   queryValidator?: ApienceUrlTokensValidator;
   /** Request body validator. */
@@ -111,7 +112,7 @@ export type ApiencePatchHandler<RequestBodyType = unknown, ResponseResultType = 
 export interface ApienceDeleteHandler extends ApienceHandlerCommon {
   pathValidator?: Record<string, ValueValidator<string>>;
   queryValidator?: Record<string, ValueValidator<string>>;
-  doc: ApienceDeleteHandlerDoc;
+  doc?: ApienceDeleteHandlerDoc;
   handler: (context: ApienceRequestContext) => Promise<void>;
   /** Optional middleware to execute before the handler */
   middlewares?: Array<ApienceHandlerMiddleware>;
@@ -145,7 +146,21 @@ export const mountDelete = (app: ExpressApplication, handler: ApienceDeleteHandl
 
 export function mount(app: ExpressApplication, { method, handler, isArrayResultType }: RouteRegistrationInfo): void {
   const pathPrefix = handler.version ? `/v${handler.version}/` : '/';
-  registerApiEndpointDocs(method, pathPrefix + handler.path, handler.doc, !!isArrayResultType);
+  const config = getApienceConfig();
+
+  // Runtime check: require docs if configured
+  if (config.requireDocs && !handler.doc) {
+    throw new Error(
+      `[Apience] Documentation (doc) is required for ${method.toUpperCase()} ${pathPrefix}${handler.path}. ` +
+        `Set configureApience({ requireDocs: false }) to disable this check.`,
+    );
+  }
+
+  // Register documentation only if provided
+  if (handler.doc) {
+    registerApiEndpointDocs(method, pathPrefix + handler.path, handler.doc, !!isArrayResultType);
+  }
+
   const path = `${pathPrefix}${handler.path}`;
   console.log(`${`${method.toUpperCase()}     `.substring(0, 8)} ${path}`);
   app[method](

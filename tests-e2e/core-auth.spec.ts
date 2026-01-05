@@ -7,20 +7,12 @@ import {
 } from '../src';
 import { getApiResult, getTestRoutes, makeRequest } from './test-setup';
 
-// Minimal doc helper for compact tests
-const minDoc = (name: string) => ({
-  summary: name,
-  description: name,
-  response: { value: { text: 'Value', type: 'string' as const }, $name: `${name}Res` },
-});
-
 describe('Apience Core + Auth E2E Integration', () => {
   describe('Core routing (top-level paths, no version)', () => {
     it('should handle GET requests at top-level path', async () => {
       const routes = getTestRoutes();
       routes.get({
         path: 'health',
-        doc: minDoc('Health'),
         handler: async () => ({ value: 'healthy' }),
       });
 
@@ -33,7 +25,6 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.post({
         path: 'items',
-        doc: { ...minDoc('CreateItem'), request: { name: { text: 'Name', type: 'string' }, $name: 'CreateItemReq' } },
         validator: { name: (v) => { if (typeof v !== 'string') throw new Error('400: bad'); } },
         handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
@@ -47,7 +38,6 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.put({
         path: 'items/:id',
-        doc: { ...minDoc('UpdateItem'), request: { name: { text: 'Name', type: 'string' }, $name: 'UpdateItemReq' } },
         validator: {},
         handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.params.get('id') }),
       });
@@ -61,7 +51,6 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.patch({
         path: 'items/:id',
-        doc: { ...minDoc('PatchItem'), request: { name: { text: 'Name', type: 'string' }, $name: 'PatchItemReq' } },
         validator: {},
         handler: async (ctx: ApienceRequestContext<{ name?: string }>) => ({ value: ctx.request.name || 'none' }),
       });
@@ -75,7 +64,6 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.delete({
         path: 'items/:id',
-        doc: { summary: 'Delete item', description: 'Delete item by id' },
         handler: async () => {},
       });
 
@@ -87,7 +75,6 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.post({
         path: 'validate-test',
-        doc: { ...minDoc('ValidateTest'), request: { name: { text: 'Name', type: 'string' }, $name: 'ValidateTestReq' } },
         validator: { name: (v) => { if (typeof v !== 'string' || !v) throw new Error('400: name required'); } },
         handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
@@ -103,7 +90,6 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.get({
         path: 'versioned',
         version: '1',
-        doc: minDoc('V1Endpoint'),
         handler: async () => ({ value: 'v1' }),
       });
 
@@ -117,7 +103,6 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.get({
         path: 'versioned',
         version: '2',
-        doc: minDoc('V2Endpoint'),
         handler: async () => ({ value: 'v2' }),
       });
 
@@ -131,14 +116,12 @@ describe('Apience Core + Auth E2E Integration', () => {
 
       routes.get({
         path: 'mixed',
-        doc: minDoc('TopLevel'),
         handler: async () => ({ value: 'top-level' }),
       });
 
       routes.get({
         path: 'mixed',
         version: '1',
-        doc: minDoc('V1Mixed'),
         handler: async () => ({ value: 'v1' }),
       });
 
@@ -159,7 +142,6 @@ describe('Apience Core + Auth E2E Integration', () => {
 
       routes.get<{ value: string }>({
         path: 'protected',
-        doc: minDoc('Protected'),
         middlewares: [createAuthMiddleware(strategy)],
         handler: async (ctx: ApienceRequestContext) => {
           const user = getAuthUser(ctx) as { id: string };
@@ -179,7 +161,6 @@ describe('Apience Core + Auth E2E Integration', () => {
 
       routes.get<{ value: string }>({
         path: 'secure',
-        doc: minDoc('Secure'),
         middlewares: [createAuthMiddleware(strategy)],
         handler: async (ctx: ApienceRequestContext) => {
           const user = getAuthUser(ctx) as { id: string };

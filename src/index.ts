@@ -1,3 +1,6 @@
+// Configuration
+export * from './config/apience-config';
+
 // Protocol
 export * from './protocol/apience-doc.types';
 export * from './protocol/apience.types';

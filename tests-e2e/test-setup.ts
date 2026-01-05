@@ -1,7 +1,6 @@
 import express, { Express } from 'express';
 import http from 'http';
-import { createRouteTable } from '../src';
-import { assertTruthy } from '../src/utils/common.utils';
+import { assertTruthy, createRouteTable } from '../src';
 
 const TEST_PORT = 3001;
 

@@ -1,6 +1,7 @@
 export * from './auth/auth-strategy';
 export * from './auth/auth.types';
 export * from './auth/auth.utils';
+export * from './auth/bearer-auth-strategy';
 export * from './config/apience-config';
 export * from './middleware/catch-all.middleware';
 export * from './protocol/apience-doc.types';

@@ -2,6 +2,7 @@ import { assertString } from 'assertic';
 import {
   ApienceRequestContext,
   BasicAuthStrategy,
+  BearerAuthStrategy,
   buildApienceSchemaJsonResponse,
   createAuthMiddleware,
   getAuthUser,
@@ -188,6 +189,44 @@ describe('Apience Core + Auth E2E Integration', () => {
       });
       expect(response.status).toBe(200);
       expect(getApiResult<{ value: string }>(response).value).toBe('user-1');
+    });
+
+    it('should authenticate with Bearer token', async () => {
+      const routes = getTestRoutes();
+      const strategy = new BearerAuthStrategy(async (token) =>
+        token === 'valid-token' ? { id: 'user-2', username: 'bearer-user' } : null,
+      );
+
+      routes.get<{ value: string }>({
+        path: 'bearer-protected',
+        middlewares: [createAuthMiddleware(strategy)],
+        handler: async (ctx) => {
+          const user = getAuthUser(ctx) as { id: string };
+          return { value: user.id };
+        },
+      });
+
+      const response = await makeRequest('GET', '/bearer-protected', {
+        headers: { Authorization: 'Bearer valid-token' },
+      });
+      expect(response.status).toBe(200);
+      expect(getApiResult<{ value: string }>(response).value).toBe('user-2');
+    });
+
+    it('should reject invalid Bearer token', async () => {
+      const routes = getTestRoutes();
+      const strategy = new BearerAuthStrategy(async () => null);
+
+      routes.get({
+        path: 'bearer-invalid',
+        middlewares: [createAuthMiddleware(strategy)],
+        handler: async () => ({}),
+      });
+
+      const response = await makeRequest('GET', '/bearer-invalid', {
+        headers: { Authorization: 'Bearer invalid' },
+      });
+      expect(response.status).toBe(401);
     });
   });
 

@@ -10,8 +10,6 @@
  * We do not use inlined 'object' types: all objects must go into the 'components' section and referenced via '$ref'.
  */
 
-import { UrlParameter } from './urls-parameters';
-
 export const APIENCE_DOC_PRIMITIVE_TYPES = ['boolean', 'number', 'string', 'integer'] as const;
 export type ApienceDocPrimitiveValueType = (typeof APIENCE_DOC_PRIMITIVE_TYPES)[number];
 
@@ -106,7 +104,7 @@ export interface ApienceHandlerDocCommon {
    */
   status?: Record<number, string>;
   /** Overrides default parameter descriptions. */
-  urlParameterDescriptionOverride?: Partial<Record<UrlParameter, string>>;
+  urlParameterDescriptionOverride?: Partial<Record<string, string>>;
 }
 
 export interface ApienceGetListHandlerDoc<ResponseResultElementType> extends ApienceHandlerDocCommon {

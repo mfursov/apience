@@ -21,7 +21,7 @@ const asyncLocalStorage = new AsyncLocalStorage<ApienceThreadLocalData>();
 
 /**
  * Gets all thread-local data for the current request context.
- * Returns undefined if called outside of an async context managed by Apience.
+ * Returns undefined if called outside an async context managed by Apience.
  */
 export function getApienceThreadLocalData(): ApienceThreadLocalData | undefined {
   return asyncLocalStorage.getStore();
@@ -44,7 +44,7 @@ export function getApienceTlsData(key: string): unknown {
 
 /**
  * Sets a specific field in the thread-local data.
- * Throws if called outside of a managed async context.
+ * Throws if called outside a managed async context.
  *
  * @param key - Field key
  * @param value - Field value

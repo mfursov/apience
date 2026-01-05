@@ -1,32 +1,5 @@
-import { assertTruthy } from '../utils/common.utils';
+import { assertTruthy } from 'assertic';
 import { ApienceDocValueFormat } from './apience-doc.types';
-
-/** Path element for organization resource. Example: /v1/organizations/${orgId}. */
-export const ORG_RESOURCE = 'organizations';
-
-/** Path element for instance resource. Example: /v1/organizations/${orgId}/services/${instanceId}. */
-export const INSTANCE_RESOURCE = 'services';
-
-/** Path element for backup resource. Example: /v1/organizations/${orgId}/services/${instanceId}/backups/${backupId}. */
-export const BACKUP_RESOURCE = 'backups';
-
-/** Path element for API Key resource. Example: /v1/organizations/${orgId}/keys/${keyId}. */
-export const KEY_RESOURCE = 'keys';
-
-/** Path element for organization user (member) resource. Example: /v1/organizations/${orgId}/members/${userId}. */
-export const MEMBER_RESOURCE = 'members';
-
-/** Path element for organization invitation resource. Example: /v1/organizations/${orgId}/invitations/${invitationId}. */
-export const INVITATION_RESOURCE = 'invitations';
-
-/** Path element for organization activity resource. Example: /v1/organizations/${orgId}/activities. */
-export const ACTIVITY_RESOURCE = 'activities';
-
-/** Path element for organization billing resource. Example: /v1/organizations/${orgId}/bills. */
-export const BILLS_RESOURCE = 'bills';
-
-/** Path element for instance metrics resource. Example: /v1/organizations/${orgId}/service/${serviceId}/metrics. */
-export const METRICS_RESOURCE = 'metrics';
 
 /** Globally identified URL (path or query) parameter info. */
 export interface UrlParameterInfo {

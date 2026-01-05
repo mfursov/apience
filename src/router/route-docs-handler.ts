@@ -1,3 +1,4 @@
+import { truthy } from 'assertic';
 import { OpenAPIV3 } from 'openapi-types';
 import { ApienceHandlerDocCommon, ApienceRequestDoc, ApienceResponseDoc } from '../protocol/apience-doc.types';
 import { ApienceHttpMethod } from '../protocol/apience.types';
@@ -6,8 +7,7 @@ import {
   generateParameterDocs,
   registerRequestDoc,
   registerResponseDoc,
-} from '../service/apience-doc-registry.utils';
-import { truthy } from '../utils/common.utils';
+} from '../service/doc-registry.utils';
 
 type ApienceHandlerDoc = ApienceHandlerDocCommon & {
   request?: ApienceRequestDoc;

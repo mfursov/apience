@@ -179,4 +179,83 @@ describe('Apience Configuration: Optional Documentation', () => {
       });
     });
   });
+
+  describe('Warning mode (warnOnMissingDocs: true)', () => {
+    let consoleWarnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should warn via console when warnOnMissingDocs is true', () => {
+      configureApience({
+        warnOnMissingDocs: true,
+        requireDocs: false,
+      });
+
+      const routes = getTestRoutes();
+      routes.get({
+        path: 'warn-console',
+        handler: async () => ({ value: 'test' }),
+      });
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith('[Apience] No documentation for GET /warn-console');
+    });
+
+    it('should not warn when warnOnMissingDocs is false', () => {
+      configureApience({
+        warnOnMissingDocs: false,
+      });
+
+      const routes = getTestRoutes();
+      routes.get({
+        path: 'no-warn-config',
+        handler: async () => ({ value: 'test' }),
+      });
+
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not warn in strict mode even with warnOnMissingDocs true', () => {
+      configureApience({
+        warnOnMissingDocs: true,
+        requireDocs: true,
+      });
+
+      const routes = getTestRoutes();
+
+      // Should throw error, not warn
+      expect(() => {
+        routes.get({
+          path: 'no-warn-strict',
+          handler: async () => ({ value: 'test' }),
+        });
+      }).toThrow('[Apience] Documentation (doc) is required');
+
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not warn for endpoints with documentation', () => {
+      configureApience({
+        warnOnMissingDocs: true,
+      });
+
+      const routes = getTestRoutes();
+      routes.get({
+        path: 'with-doc-no-warn',
+        doc: {
+          summary: 'Test endpoint',
+          description: 'Test endpoint description',
+          response: { value: { text: 'Value', type: 'string' }, $name: 'TestRes' },
+        },
+        handler: async () => ({ value: 'success' }),
+      });
+
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+  });
 });

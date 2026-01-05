@@ -15,6 +15,6 @@
  * - BasicAuthStrategy: HTTP Basic authentication implementation.
  */
 
-export type { AuthStrategy } from './apience-auth.types';
-export { createAuthMiddleware, getAuthUser, tryGetAuthUser } from './apience-auth.utils';
-export { BasicAuthStrategy } from './basic-auth-strategy';
+export { BasicAuthStrategy } from './auth-strategy';
+export type { AuthStrategy } from './auth.types';
+export { createAuthMiddleware, getAuthUser, tryGetAuthUser } from './auth.utils';

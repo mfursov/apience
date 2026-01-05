@@ -1,3 +1,4 @@
+import { assertTruthy, truthy } from 'assertic';
 import { OpenAPIV3 } from 'openapi-types';
 import {
   ApienceDocField,
@@ -11,7 +12,7 @@ import {
   isApienceDocReferenceField,
 } from '../protocol/apience-doc.types';
 import { assertUrlParameter, URL_PARAMETER_INFO, UrlParameter } from '../protocol/urls-parameters';
-import { assertTruthy, BAD_REQUEST_STATUS, truthy } from '../utils/common.utils';
+import { BAD_REQUEST_STATUS } from '../utils/common.utils';
 
 /** Returns fully qualified $ref path. */
 export function getComponentsSectionPath(ref: string): string {
@@ -24,7 +25,7 @@ const uniqueApienceObjectDocMap = new Map<string, ApienceObjectDoc>();
 /**
  * Extended OpenAPIV3 schema description.
  * Allows us to have a reference to an external object descriptions for a field
- * (which is OK, but not in the typescript package for some reason).
+ * (which is OK, but not in the TypeScript package for some reason).
  */
 type SchemaObjectV1 = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
 

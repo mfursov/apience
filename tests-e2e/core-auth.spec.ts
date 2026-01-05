@@ -1,3 +1,4 @@
+import { assertString } from 'assertic';
 import {
   ApienceRequestContext,
   BasicAuthStrategy,
@@ -26,9 +27,7 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.post({
         path: 'items',
         validator: {
-          name: v => {
-            if (typeof v !== 'string') throw new Error('400: bad');
-          },
+          name: v => assertString(v, '400: bad'),
         },
         handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
@@ -80,14 +79,12 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.post({
         path: 'validate-test',
         validator: {
-          name: v => {
-            if (typeof v !== 'string' || !v) throw new Error('400: name required');
-          },
+          name: v => assertString(v, '400: name required'),
         },
         handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
-      const response = await makeRequest('POST', '/validate-test', { body: { name: '' } });
+      const response = await makeRequest('POST', '/validate-test', { body: { name: 1 } });
       expect(response.status).toBe(400);
     });
   });
@@ -233,7 +230,7 @@ describe('Apience Core + Auth E2E Integration', () => {
           request: { title: { text: 'Title', type: 'string', isRequired: true }, $name: 'DocsPostReq' },
           response: { id: { text: 'ID', type: 'string' }, $name: 'DocsPostRes' },
         },
-        validator: { title: () => {} },
+        validator: { title: (v) => assertString(v, '400: title required') },
         handler: async () => ({ id: '1' }),
       });
 

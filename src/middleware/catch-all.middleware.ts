@@ -1,7 +1,7 @@
 import { NextFunction } from 'express';
 import { ApienceResponse } from '../protocol/apience.types';
-import { wrapAsApienceResponse } from '../utils/apience-conversion.utils';
 import { BAD_REQUEST, INTERNAL_ERROR_STATUS, parseStatusCodeFromErrorMessageToken } from '../utils/common.utils';
+import { wrapAsApienceResponse } from '../utils/conversion.utils';
 import { ExpressFunction, ExpressRequest, ExpressResponse } from '../utils/express.utils';
 
 function buildApienceResponse(error: unknown): ApienceResponse & { status: number } {

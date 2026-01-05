@@ -1,5 +1,5 @@
 import { ApienceResponse } from '../protocol/apience.types';
-import { toApienceDateString, wrapAsApienceResponse } from './apience-conversion.utils';
+import { toApienceDateString, wrapAsApienceResponse } from './conversion.utils';
 
 describe('apience-conversion.utils', () => {
   describe('toApienceDateString', () => {

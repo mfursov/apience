@@ -1,12 +1,13 @@
+import { assertTruthy, callValueAssertion, ObjectAssertion, validateObject, ValueAssertion } from 'assertic';
 import * as url from 'url';
 import { getApienceConfig } from '../config/apience-config';
-import { catchRouteErrors } from '../middleware/apience-errors';
+import { catchRouteErrors } from '../middleware/catch-all.middleware';
 import { ApienceDeleteHandlerDoc, ApienceGetHandlerDoc, ApiencePostHandlerDoc } from '../protocol/apience-doc.types';
 import { ApienceResponse, ApienceUrlTokensValidator } from '../protocol/apience.types';
-import { wrapAsApienceResponse } from '../utils/apience-conversion.utils';
-import { assertTruthy, BAD_REQUEST, ObjectValidator, validateObject, ValueValidator } from '../utils/common.utils';
+import { wrapAsApienceResponse } from '../utils/conversion.utils';
+import { BAD_REQUEST } from '../utils/common.utils';
 import { ExpressApplication, ExpressRequest, ExpressResponse } from '../utils/express.utils';
-import { registerApiEndpointDocs } from './apience-route-docs-handler';
+import { registerApiEndpointDocs } from './route-docs-handler';
 
 /** Common part of all Apience route descriptors. */
 export interface ApienceHandlerCommon {
@@ -90,7 +91,7 @@ export interface ApiencePostHandler<
   pathValidator?: ApienceUrlTokensValidator;
   queryValidator?: ApienceUrlTokensValidator;
   /** Request body validator. */
-  validator: ObjectValidator<Record<string, unknown>>;
+  validator: ObjectAssertion<Record<string, unknown>>;
   handler: (context: ApienceRequestContext<RequestBodyType>) => Promise<ApienceResponseOrValue<ResponseResultType>>;
   /** Optional middleware to execute before the handler */
   middlewares?: Array<ApienceHandlerMiddleware>;
@@ -110,8 +111,8 @@ export type ApiencePatchHandler<RequestBodyType = unknown, ResponseResultType = 
 
 /** Descriptor for DELETE routes. */
 export interface ApienceDeleteHandler extends ApienceHandlerCommon {
-  pathValidator?: Record<string, ValueValidator<string>>;
-  queryValidator?: Record<string, ValueValidator<string>>;
+  pathValidator?: Record<string, ValueAssertion<string>>;
+  queryValidator?: Record<string, ValueAssertion<string>>;
   doc?: ApienceDeleteHandlerDoc;
   handler: (context: ApienceRequestContext) => Promise<void>;
   /** Optional middleware to execute before the handler */
@@ -154,6 +155,11 @@ export function mount(app: ExpressApplication, { method, handler, isArrayResultT
       `[Apience] Documentation (doc) is required for ${method.toUpperCase()} ${pathPrefix}${handler.path}. ` +
         `Set configureApience({ requireDocs: false }) to disable this check.`,
     );
+  }
+
+  // Warning for missing docs (only if not in strict mode)
+  if (config.warnOnMissingDocs && !handler.doc && !config.requireDocs) {
+    console.warn(`[Apience] No documentation for ${method.toUpperCase()} ${pathPrefix}${handler.path}`);
   }
 
   // Register documentation only if provided
@@ -205,7 +211,7 @@ function validateUrlParameters(
     const value = req.params[key];
     const validator = pathValidator?.[key];
     if (validator) {
-      validator(value, BAD_REQUEST);
+      callValueAssertion(value, validator, BAD_REQUEST);
     }
   }
 
@@ -214,7 +220,7 @@ function validateUrlParameters(
     const value = parsedUrl.query[key];
     const validator = queryValidator?.[key];
     if (validator) {
-      validator(value, BAD_REQUEST);
+      callValueAssertion(value, validator, BAD_REQUEST);
     }
   }
 }
@@ -248,7 +254,13 @@ async function runPppHandler<RequestBodyType, ResponseResultType>(
   middlewares?: Array<ApienceHandlerMiddleware>,
 ): Promise<ApienceResponseOrValue<ResponseResultType>> {
   const apienceRequest = requestContext.req.body as unknown;
-  validateObject(apienceRequest, handler.validator, `${BAD_REQUEST}: request body`, { failOnMissedValidators: true });
+  
+  // If validator is empty object {}, allow unknown fields
+  const isEmptyValidator = Object.keys(handler.validator).length === 0;
+  const error = validateObject(apienceRequest, handler.validator, `${BAD_REQUEST}: request body`, {
+    failOnUnknownFields: !isEmptyValidator,
+  });
+  assertTruthy(!error, error);
   requestContext.data.request = requestContext.req.body;
 
   return await executeWithMiddleware(

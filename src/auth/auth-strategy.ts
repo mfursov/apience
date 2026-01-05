@@ -1,6 +1,7 @@
+import { assertTruthy } from 'assertic';
 import { ApienceHandlerCommon } from '../router/apience-router';
 import { ExpressRequest } from '../utils/express.utils';
-import { AuthStrategy } from './apience-auth.types';
+import { AuthStrategy } from './auth.types';
 
 /**
  * Basic authentication strategy using username/password validation.
@@ -31,22 +32,16 @@ export class BasicAuthStrategy<TUser = unknown> implements AuthStrategy<{ userna
    */
   extractCredentials(req: ExpressRequest): { username: string; password: string } {
     const authHeaderValue = req.header('Authorization');
-    if (!authHeaderValue) {
-      throw new Error('401 UNAUTHORIZED: No Authorization header provided');
-    }
+    assertTruthy(authHeaderValue, '401 UNAUTHORIZED: No Authorization header provided');
 
     // Parse Basic auth header: "Basic base64(username:password)"
-    if (!authHeaderValue.startsWith('Basic ')) {
-      throw new Error('401 UNAUTHORIZED: Invalid Authorization header format');
-    }
+    assertTruthy(authHeaderValue.startsWith('Basic '), '401 UNAUTHORIZED: Invalid Authorization header format');
 
     try {
       const decoded = Buffer.from(authHeaderValue.substring(6), 'base64').toString('utf-8');
       const [username, password] = decoded.split(':');
 
-      if (!username || !password) {
-        throw new Error('401 UNAUTHORIZED: Invalid credentials format');
-      }
+      assertTruthy(username && password, '401 UNAUTHORIZED: Invalid credentials format');
 
       return { username, password };
     } catch (_error) {
@@ -59,9 +54,7 @@ export class BasicAuthStrategy<TUser = unknown> implements AuthStrategy<{ userna
    */
   async validateCredentials({ username, password }: { username: string; password: string }): Promise<TUser> {
     const user = await this.validateFn(username, password);
-    if (!user) {
-      throw new Error('401 UNAUTHORIZED: Invalid username or password');
-    }
+    assertTruthy(user, '401 UNAUTHORIZED: Invalid username or password');
     return user;
   }
 

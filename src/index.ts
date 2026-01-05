@@ -1,32 +1,14 @@
-// Configuration
+export * from './auth';
 export * from './config/apience-config';
-
-// Protocol
+export * from './middleware/catch-all.middleware';
 export * from './protocol/apience-doc.types';
 export * from './protocol/apience.types';
 export * from './protocol/urls-parameters';
-
-// Router
-export * from './router/apience-route-docs-handler';
-export * from './router/apience-route-table';
-export * from './router/apience-router';
-
-// Middleware
-export * from './middleware/apience-errors';
-
-// Service
-export * from './service/apience-doc-registry.utils';
-
-// Utils
-export * from './utils/apience-conversion.utils';
-export * from './utils/common.utils';
-export * from './utils/express.utils';
-
-// Auth
-export * from './auth';
-
-// Rate Limit
 export * from './rate-limit';
-
-// Logging
-export * from './logging';
+export * from './router/apience-router';
+export * from './router/route-docs-handler';
+export * from './router/route-table';
+export * from './service/doc-registry.utils';
+export * from './utils/common.utils';
+export * from './utils/conversion.utils';
+export * from './utils/express.utils';

@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { NextFunction } from 'express';
 import { ExpressFunction, ExpressRequest, ExpressResponse } from '../utils/express.utils';
-import { runWithApienceTlsData } from './apience-thread-local-storage';
+import { runWithApienceTlsData } from './thread-local-storage';
 
 /**
  * Configuration for thread-local storage middleware.

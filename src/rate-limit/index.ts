@@ -16,6 +16,6 @@
  * - createRateLimiterMiddleware: Create rate limit middleware.
  */
 
-export type { RateLimitConfig, RateLimitResult } from './apience-rate-limit.types';
-export { addRateLimitHeaders, msToSeconds } from './apience-rate-limit.utils';
 export { InMemoryRateLimiter, createRateLimiterMiddleware } from './in-memory-rate-limiter';
+export type { RateLimitConfig, RateLimitResult } from './rate-limit.types';
+export { addRateLimitHeaders, msToSeconds } from './rate-limit.utils';

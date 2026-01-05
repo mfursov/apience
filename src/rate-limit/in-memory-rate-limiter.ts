@@ -1,6 +1,6 @@
 import { ExpressFunction, ExpressNextFunction, ExpressRequest, ExpressResponse } from '../utils/express.utils';
-import { RateLimitConfig, RateLimitResult } from './apience-rate-limit.types';
-import { addRateLimitHeaders, msToSeconds } from './apience-rate-limit.utils';
+import { RateLimitConfig, RateLimitResult } from './rate-limit.types';
+import { addRateLimitHeaders, msToSeconds } from './rate-limit.utils';
 
 const MILLIS_PER_SECOND = 1000;
 

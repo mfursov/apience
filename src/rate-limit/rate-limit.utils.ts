@@ -1,5 +1,5 @@
 import { ExpressResponse } from '../utils/express.utils';
-import { RateLimitResult } from './apience-rate-limit.types';
+import { RateLimitResult } from './rate-limit.types';
 
 const MILLIS_PER_SECOND = 1000;
 

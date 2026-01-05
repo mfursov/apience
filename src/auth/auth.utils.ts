@@ -1,5 +1,6 @@
+import { assertTruthy } from 'assertic';
 import { ApienceHandlerMiddleware, ApienceRequestContext } from '../router/apience-router';
-import { AuthStrategy } from './apience-auth.types';
+import { AuthStrategy } from './auth.types';
 
 /**
  * Creates a middleware that enforces authentication using the provided strategy.
@@ -51,9 +52,7 @@ export function createAuthMiddleware<TUser = unknown>(
  */
 export function getAuthUser<TUser = unknown>(context: ApienceRequestContext): TUser {
   const user = context.context.get('authUser');
-  if (!user) {
-    throw new Error('401 UNAUTHORIZED: User not found in context. Did you add auth middleware?');
-  }
+  assertTruthy(user, '401 UNAUTHORIZED: User not found in context. Did you add auth middleware?');
   return user as TUser;
 }
 

@@ -16,7 +16,7 @@ import {
  * Helper utility for organizing and mounting routes.
  * Provides a fluent interface for registering multiple handlers.
  */
-export class ApienceRouteTable {
+export class RouteTable {
   constructor(private readonly app: ExpressApplication) {}
 
   get<T>(handler: ApienceGetHandler<T> | ApienceGetHandler<T[]>): this {
@@ -51,6 +51,6 @@ export class ApienceRouteTable {
  * @param app Express application instance
  * @returns ApienceRouteTable instance with fluent API
  */
-export function createRouteTable(app: ExpressApplication): ApienceRouteTable {
-  return new ApienceRouteTable(app);
+export function createRouteTable(app: ExpressApplication): RouteTable {
+  return new RouteTable(app);
 }

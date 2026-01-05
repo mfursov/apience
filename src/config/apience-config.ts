@@ -4,11 +4,18 @@ export interface ApienceGlobalConfig {
    * When true, throws an error at mount time if endpoint is missing 'doc' field.
    * Default: false
    */
-  requireDocs: boolean;
+  requireDocs?: boolean;
+  /**
+   * Show warning for endpoints without documentation during startup.
+   * When true, logs a brief warning for each endpoint without 'doc' field.
+   * Default: false
+   */
+  warnOnMissingDocs?: boolean;
 }
 
 const defaultConfig: ApienceGlobalConfig = {
   requireDocs: false,
+  warnOnMissingDocs: false,
 };
 
 let currentConfig: ApienceGlobalConfig = { ...defaultConfig };

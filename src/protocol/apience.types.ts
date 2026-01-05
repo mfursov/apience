@@ -1,6 +1,6 @@
-import { ValueValidator } from '../utils/common.utils';
+import { ValueAssertion } from 'assertic';
 
-export type ApienceUrlTokensValidator = Record<string, ValueValidator<string>>;
+export type ApienceUrlTokensValidator = Record<string, ValueAssertion<string>>;
 
 export interface ApienceResponse<ResponseEntity = unknown> {
   /** Result of the call. A single entity for non-paginated ${by-id} requests or an array for list queries. */

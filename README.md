@@ -46,7 +46,7 @@ routes.post<{ name: string }, { id: string }>({
     request: { name: { text: 'Name', type: 'string' }, $name: 'CreateUserReq' },
     response: { id: { text: 'ID', type: 'string' }, $name: 'CreateUserRes' },
   },
-  validator: { name: (v) => { if (!v) throw new Error('400: name required'); } },
+  validator: { name: (v) => { assertTruthy(v, '400: name required'); } }, // import { assertTruthy } from 'assertic'
   handler: async (ctx) => ({ id: '123' }),
 });
 
@@ -70,6 +70,9 @@ configureApience({ requireDocs: true });
 
 // Optional documentation (default)
 configureApience({ requireDocs: false });
+
+// Optional documentation with warnings for missing docs
+configureApience({ requireDocs: false, warnOnMissingDocs: true });
 ```
 
 When `requireDocs` is `true`, any endpoint without a `doc` field will throw an error during route registration:
@@ -84,10 +87,21 @@ routes.get({
 // Set configureApience({ requireDocs: false }) to disable this check.
 ```
 
+When `warnOnMissingDocs` is `true`, endpoints without documentation will show warnings in the console:
+
+```typescript
+// This will show a warning if warnOnMissingDocs is true
+routes.get({
+  path: 'users',
+  handler: async () => ({ users: [] }),
+});
+// Console: [Apience] No documentation for GET /users
+```
+
 **Use cases:**
-- **Development**: Set `requireDocs: false` for rapid prototyping
+- **Development**: Set `requireDocs: false` for rapid prototyping, optionally use `warnOnMissingDocs: true` to track missing documentation
 - **Production**: Set `requireDocs: true` to ensure all endpoints are documented
-- **Gradual migration**: Start with `requireDocs: false`, add docs incrementally, then switch to `true`
+- **Gradual migration**: Start with `requireDocs: false` and `warnOnMissingDocs: true`, add docs incrementally, then switch to `requireDocs: true`
 
 ## API Versioning
 

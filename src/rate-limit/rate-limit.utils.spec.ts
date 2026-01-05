@@ -1,6 +1,6 @@
 import { ExpressResponse } from '../utils/express.utils';
-import { RateLimitResult } from './apience-rate-limit.types';
-import { addRateLimitHeaders, msToSeconds } from './apience-rate-limit.utils';
+import { RateLimitResult } from './rate-limit.types';
+import { addRateLimitHeaders, msToSeconds } from './rate-limit.utils';
 
 describe('apience-rate-limit.utils', () => {
   describe('msToSeconds', () => {
@@ -49,17 +49,14 @@ describe('apience-rate-limit.utils', () => {
     });
 
     it('should add all required rate limit headers', () => {
-      const result: RateLimitResult = {
-        remainingPoints: 50,
-        msBeforeNext: 30000,
-      };
+      const result: RateLimitResult = { remainingPoints: 50, msBeforeNext: 30000 };
 
-      const response = addRateLimitHeaders(mockResponse as ExpressResponse, result, 100, 60);
+      const { header } = addRateLimitHeaders(mockResponse as ExpressResponse, result, 100, 60);
 
-      expect(mockResponse.header).toHaveBeenCalledWith('X-RateLimit-Limit', '100');
-      expect(mockResponse.header).toHaveBeenCalledWith('X-RateLimit-Remaining', '50');
-      expect(mockResponse.header).toHaveBeenCalledWith('X-RateLimit-Reset', '30');
-      expect(mockResponse.header).toHaveBeenCalledWith('X-RateLimit-Policy', '100;w=60;comment="fixed window"');
+      expect(header).toHaveBeenCalledWith('X-RateLimit-Limit', '100');
+      expect(header).toHaveBeenCalledWith('X-RateLimit-Remaining', '50');
+      expect(header).toHaveBeenCalledWith('X-RateLimit-Reset', '30');
+      expect(header).toHaveBeenCalledWith('X-RateLimit-Policy', '100;w=60;comment="fixed window"');
     });
 
     it('should return the response object for chaining', () => {

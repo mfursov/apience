@@ -1,4 +1,4 @@
-import { ObjectAssertion, ValueAssertion } from 'assertic';
+import { Assertion, ObjectAssertion, ValueAssertion } from 'assertic';
 import { ApienceDeleteHandlerDoc, ApienceGetHandlerDoc, ApiencePostHandlerDoc } from '../protocol/apience-doc.types';
 import { ApienceResponse, ApienceUrlTokensValidator } from '../protocol/apience.types';
 import { ExpressRequest, ExpressResponse } from '../utils/express.utils';
@@ -27,7 +27,7 @@ export type ApienceResponseOrValue<ResponseEntity> = ApienceResponse<ResponseEnt
  * Allows custom logic like transaction management, authorization checks, etc.
  */
 export type ApienceHandlerMiddleware<Context = ApienceRequestContext> = (
-  handler: () => Promise<unknown>,
+  run: () => Promise<unknown>,
   context: Context,
 ) => Promise<unknown>;
 
@@ -61,7 +61,7 @@ export interface ApienceGetListHandler<ResponseResultElementType = unknown> exte
   pathValidator?: ApienceUrlTokensValidator;
   queryValidator?: ApienceUrlTokensValidator;
   doc?: ApienceGetHandlerDoc<ResponseResultElementType>;
-  handler: (context: ApienceRequestContext) => Promise<ApienceResponseOrValue<Array<ResponseResultElementType>>>;
+  run: (context: ApienceRequestContext) => Promise<ApienceResponseOrValue<Array<ResponseResultElementType>>>;
   /** Optional middleware to execute before the handler */
   middlewares?: Array<ApienceHandlerMiddleware>;
 }
@@ -71,7 +71,7 @@ export interface ApienceGetHandler<ResponseResultType = unknown> extends Apience
   pathValidator?: ApienceUrlTokensValidator;
   queryValidator?: ApienceUrlTokensValidator;
   doc?: ApienceGetHandlerDoc<ResponseResultType>;
-  handler: (context: ApienceRequestContext) => Promise<ApienceResponseOrValue<ResponseResultType>>;
+  run: (context: ApienceRequestContext) => Promise<ApienceResponseOrValue<ResponseResultType>>;
   /** Optional middleware to execute before the handler */
   middlewares?: Array<ApienceHandlerMiddleware>;
 }
@@ -85,8 +85,8 @@ export interface ApiencePostHandler<
   pathValidator?: ApienceUrlTokensValidator;
   queryValidator?: ApienceUrlTokensValidator;
   /** Request body validator. */
-  validator: ObjectAssertion<Record<string, unknown>>;
-  handler: (context: ApienceRequestContext<RequestBodyType>) => Promise<ApienceResponseOrValue<ResponseResultType>>;
+  validator: RequestBodyType extends object ? ObjectAssertion<RequestBodyType> : Assertion<RequestBodyType>;
+  run: (context: ApienceRequestContext<RequestBodyType>) => Promise<ApienceResponseOrValue<ResponseResultType>>;
   /** Optional middleware to execute before the handler */
   middlewares?: Array<ApienceHandlerMiddleware>;
 }
@@ -108,16 +108,16 @@ export interface ApienceDeleteHandler extends ApienceHandlerCommon {
   pathValidator?: Record<string, ValueAssertion<string>>;
   queryValidator?: Record<string, ValueAssertion<string>>;
   doc?: ApienceDeleteHandlerDoc;
-  handler: (context: ApienceRequestContext) => Promise<void>;
+  run: (context: ApienceRequestContext) => Promise<void>;
   /** Optional middleware to execute before the handler */
   middlewares?: Array<ApienceHandlerMiddleware>;
 }
 
 /** Union type for all route registration info objects. */
 export type RouteRegistrationInfo = (
-  | { method: 'get'; handler: ApienceGetHandler | ApienceGetListHandler }
-  | { method: 'post'; handler: ApiencePostHandler }
-  | { method: 'patch'; handler: ApiencePatchHandler }
-  | { method: 'put'; handler: ApiencePutHandler }
-  | { method: 'delete'; handler: ApienceDeleteHandler }
+  | { method: 'get'; route: ApienceGetHandler | ApienceGetListHandler }
+  | { method: 'post'; route: ApiencePostHandler }
+  | { method: 'patch'; route: ApiencePatchHandler }
+  | { method: 'put'; route: ApiencePutHandler }
+  | { method: 'delete'; route: ApienceDeleteHandler }
 ) & { isArrayResultType?: boolean };

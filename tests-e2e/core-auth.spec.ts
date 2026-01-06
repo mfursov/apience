@@ -24,7 +24,7 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.get({
         path: 'health',
-        handler: async () => ({ value: 'healthy' }),
+        run: async () => ({ value: 'healthy' }),
       });
 
       const response = await makeRequest('GET', '/health');
@@ -39,7 +39,7 @@ describe('Apience Core + Auth E2E Integration', () => {
         validator: {
           name: v => assertString(v, '400: bad'),
         },
-        handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
+        run: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
       const response = await makeRequest('POST', '/items', { body: { name: 'Test' } });
@@ -51,8 +51,8 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.put({
         path: 'items/:id',
-        validator: {},
-        handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.params.get('id') }),
+        validator: { name: assertString },
+        run: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.params.get('id') }),
       });
 
       const response = await makeRequest('PUT', '/items/123', { body: { name: 'Updated' } });
@@ -64,8 +64,8 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.patch({
         path: 'items/:id',
-        validator: {},
-        handler: async (ctx: ApienceRequestContext<{ name?: string }>) => ({ value: ctx.request.name || 'none' }),
+        validator: { name: assertString },
+        run: async (ctx: ApienceRequestContext<{ name?: string }>) => ({ value: ctx.request.name || 'none' }),
       });
 
       const response = await makeRequest('PATCH', '/items/456', { body: { name: 'Patched' } });
@@ -77,7 +77,7 @@ describe('Apience Core + Auth E2E Integration', () => {
       const routes = getTestRoutes();
       routes.delete({
         path: 'items/:id',
-        handler: async () => {},
+        run: async () => {},
       });
 
       const response = await makeRequest('DELETE', '/items/789');
@@ -91,7 +91,7 @@ describe('Apience Core + Auth E2E Integration', () => {
         validator: {
           name: v => assertString(v, '400: name required'),
         },
-        handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
+        run: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
       const response = await makeRequest('POST', '/validate-test', { body: { name: 1 } });
@@ -105,7 +105,7 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.get({
         path: 'versioned',
         version: '1',
-        handler: async () => ({ value: 'v1' }),
+        run: async () => ({ value: 'v1' }),
       });
 
       const response = await makeRequest('GET', '/v1/versioned');
@@ -118,7 +118,7 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.get({
         path: 'versioned',
         version: '2',
-        handler: async () => ({ value: 'v2' }),
+        run: async () => ({ value: 'v2' }),
       });
 
       const response = await makeRequest('GET', '/v2/versioned');
@@ -131,13 +131,13 @@ describe('Apience Core + Auth E2E Integration', () => {
 
       routes.get({
         path: 'mixed',
-        handler: async () => ({ value: 'top-level' }),
+        run: async () => ({ value: 'top-level' }),
       });
 
       routes.get({
         path: 'mixed',
         version: '1',
-        handler: async () => ({ value: 'v1' }),
+        run: async () => ({ value: 'v1' }),
       });
 
       const topResponse = await makeRequest('GET', '/mixed');
@@ -158,7 +158,7 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.get<{ value: string }>({
         path: 'protected',
         middlewares: [createAuthMiddleware(strategy)],
-        handler: async (ctx: ApienceRequestContext) => {
+        run: async (ctx: ApienceRequestContext) => {
           const user = getAuthUser(ctx) as { id: string };
           return { value: user.id };
         },
@@ -177,7 +177,7 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.get<{ value: string }>({
         path: 'secure',
         middlewares: [createAuthMiddleware(strategy)],
-        handler: async (ctx: ApienceRequestContext) => {
+        run: async (ctx: ApienceRequestContext) => {
           const user = getAuthUser(ctx) as { id: string };
           return { value: user.id };
         },
@@ -193,14 +193,14 @@ describe('Apience Core + Auth E2E Integration', () => {
 
     it('should authenticate with Bearer token', async () => {
       const routes = getTestRoutes();
-      const strategy = new BearerAuthStrategy(async (token) =>
+      const strategy = new BearerAuthStrategy(async token =>
         token === 'valid-token' ? { id: 'user-2', username: 'bearer-user' } : null,
       );
 
       routes.get<{ value: string }>({
         path: 'bearer-protected',
         middlewares: [createAuthMiddleware(strategy)],
-        handler: async (ctx) => {
+        run: async ctx => {
           const user = getAuthUser(ctx) as { id: string };
           return { value: user.id };
         },
@@ -220,7 +220,7 @@ describe('Apience Core + Auth E2E Integration', () => {
       routes.get({
         path: 'bearer-invalid',
         middlewares: [createAuthMiddleware(strategy)],
-        handler: async () => ({}),
+        run: async () => ({}),
       });
 
       const response = await makeRequest('GET', '/bearer-invalid', {
@@ -240,7 +240,7 @@ describe('Apience Core + Auth E2E Integration', () => {
           description: 'An endpoint without version prefix.',
           response: { message: { text: 'Message', type: 'string' }, $name: 'DocsTopLevelRes' },
         },
-        handler: async () => ({ message: 'ok' }),
+        run: async () => ({ message: 'ok' }),
       });
 
       const schema = JSON.parse(buildApienceSchemaJsonResponse());
@@ -259,7 +259,7 @@ describe('Apience Core + Auth E2E Integration', () => {
           description: 'An endpoint with v1 prefix.',
           response: { message: { text: 'Message', type: 'string' }, $name: 'DocsVersionedRes' },
         },
-        handler: async () => ({ message: 'v1' }),
+        run: async () => ({ message: 'v1' }),
       });
 
       const schema = JSON.parse(buildApienceSchemaJsonResponse());
@@ -279,7 +279,7 @@ describe('Apience Core + Auth E2E Integration', () => {
           response: { id: { text: 'ID', type: 'string' }, $name: 'DocsPostRes' },
         },
         validator: { title: v => assertString(v, '400: title required') },
-        handler: async () => ({ id: '1' }),
+        run: async () => ({ id: '1' }),
       });
 
       const schema = JSON.parse(buildApienceSchemaJsonResponse());

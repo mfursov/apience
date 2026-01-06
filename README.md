@@ -36,7 +36,7 @@ routes.get<{ id: string; name: string }>({
       $name: 'User',
     },
   },
-  handler: async ctx => ({
+  run: async ctx => ({
     id: ctx.params.get('id'),
     name: 'John',
   }),
@@ -56,7 +56,7 @@ routes.post<{ name: string }, { id: string }>({
       assertTruthy(v, '400: name required');
     },
   }, // import { assertTruthy } from 'assertic'
-  handler: async ctx => ({ id: '123' }),
+  run: async ctx => ({ id: '123' }),
 });
 
 // OpenAPI schema endpoint
@@ -115,7 +115,7 @@ When `requireDocs` is `true`, any endpoint without a `doc` field will throw an e
 // This will throw an error if requireDocs is true
 routes.get({
   path: 'users',
-  handler: async () => ({ users: [] }),
+  run: async () => ({ users: [] }),
 });
 // Error: [Apience] Documentation (doc) is required for GET /users.
 // Set configureApience({ requireDocs: false }) to disable this check.
@@ -127,7 +127,7 @@ When `warnOnMissingDocs` is `true`, endpoints without documentation will show wa
 // This will show a warning if warnOnMissingDocs is true
 routes.get({
   path: 'users',
-  handler: async () => ({ users: [] }),
+  run: async () => ({ users: [] }),
 });
 // Console: [Apience] No documentation for GET /users
 ```
@@ -142,13 +142,13 @@ routes.get({
 
 ```typescript
 // Top-level: GET /users
-routes.get({ path: 'users', doc: {...}, handler: ... });
+routes.get({ path: 'users', doc: {...}, run: ... });
 
 // Versioned: GET /v1/users
-routes.get({ path: 'users', version: '1', doc: {...}, handler: ... });
+routes.get({ path: 'users', version: '1', doc: {...}, run: ... });
 
 // Versioned: GET /v2/users
-routes.get({ path: 'users', version: '2', doc: {...}, handler: ... });
+routes.get({ path: 'users', version: '2', doc: {...}, run: ... });
 ```
 
 ## Authentication
@@ -164,7 +164,7 @@ routes.get({
   path: 'profile',
   doc: {...},
   middlewares: [createAuthMiddleware(auth)],
-  handler: async (ctx) => {
+  run: async (ctx) => {
     const user = getAuthUser(ctx);
     return { id: user.id };
   },

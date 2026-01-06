@@ -33,7 +33,7 @@ describe('Custom URL Parameters', () => {
       pathValidator: {
         sku: v => assertString(v, 'SKU must be string'),
       },
-      handler: async ctx => ({ sku: ctx.params.get('sku') }),
+      run: async ctx => ({ sku: ctx.params.get('sku') }),
     });
 
     const response = await makeRequest('GET', '/products/ABC-123');
@@ -60,7 +60,7 @@ describe('Custom URL Parameters', () => {
           if (isNaN(parseInt(v))) throw new Error('400: Not a number');
         },
       },
-      handler: async ctx => ({ id: ctx.params.get('shopId') }),
+      run: async ctx => ({ id: ctx.params.get('shopId') }),
     });
 
     const response = await makeRequest('GET', '/shops/999');

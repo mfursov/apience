@@ -21,7 +21,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       const routes = getTestRoutes();
       routes.get({
         path: 'no-doc-get',
-        handler: async () => ({ value: 'success' }),
+        run: async () => ({ value: 'success' }),
       });
 
       const response = await makeRequest('GET', '/no-doc-get');
@@ -34,7 +34,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       routes.post({
         path: 'no-doc-post',
         validator: { name: assertString },
-        handler: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
+        run: async (ctx: ApienceRequestContext<{ name: string }>) => ({ value: ctx.request.name }),
       });
 
       const response = await makeRequest('POST', '/no-doc-post', { body: { name: 'test' } });
@@ -46,7 +46,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       const routes = getTestRoutes();
       routes.delete({
         path: 'no-doc-delete/:id',
-        handler: async () => {},
+        run: async () => {},
       });
 
       const response = await makeRequest('DELETE', '/no-doc-delete/123');
@@ -58,7 +58,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       routes.put({
         path: 'no-doc-put/:id',
         validator: {},
-        handler: async (ctx: ApienceRequestContext) => ({ value: ctx.params.get('id') }),
+        run: async (ctx: ApienceRequestContext) => ({ value: ctx.params.get('id') }),
       });
 
       const response = await makeRequest('PUT', '/no-doc-put/456', { body: {} });
@@ -71,7 +71,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       routes.patch({
         path: 'no-doc-patch/:id',
         validator: {},
-        handler: async (ctx: ApienceRequestContext) => ({ value: ctx.params.get('id') }),
+        run: async (ctx: ApienceRequestContext) => ({ value: ctx.params.get('id') }),
       });
 
       const response = await makeRequest('PATCH', '/no-doc-patch/789', { body: {} });
@@ -89,7 +89,7 @@ describe('Apience Configuration: Optional Documentation', () => {
           description: 'This should not crash',
           response: { value: { text: 'Value', type: 'string' }, $name: 'MissingParamRes' },
         },
-        handler: async ctx => ({ value: ctx.params.get('missingParam') }),
+        run: async ctx => ({ value: ctx.params.get('missingParam') }),
       });
 
       const response = await makeRequest('GET', '/missing-param/123');
@@ -109,7 +109,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       expect(() => {
         routes.get({
           path: 'missing-doc',
-          handler: async () => ({ value: 'test' }),
+          run: async () => ({ value: 'test' }),
         });
       }).toThrow('[Apience] Documentation (doc) is required for GET /missing-doc');
     });
@@ -121,7 +121,7 @@ describe('Apience Configuration: Optional Documentation', () => {
         routes.post({
           path: 'missing-doc-post',
           validator: {},
-          handler: async () => ({ value: 'test' }),
+          run: async () => ({ value: 'test' }),
         });
       }).toThrow('[Apience] Documentation (doc) is required for POST /missing-doc-post');
     });
@@ -132,7 +132,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       expect(() => {
         routes.delete({
           path: 'missing-doc-delete',
-          handler: async () => {},
+          run: async () => {},
         });
       }).toThrow('[Apience] Documentation (doc) is required for DELETE /missing-doc-delete');
     });
@@ -146,7 +146,7 @@ describe('Apience Configuration: Optional Documentation', () => {
           description: 'Test endpoint description',
           response: { value: { text: 'Value', type: 'string' }, $name: 'WithDocRes' },
         },
-        handler: async () => ({ value: 'success' }),
+        run: async () => ({ value: 'success' }),
       });
 
       const response = await makeRequest('GET', '/with-doc');
@@ -164,7 +164,7 @@ describe('Apience Configuration: Optional Documentation', () => {
             description: 'This SHOULD crash',
             response: { value: { text: 'Value', type: 'string' }, $name: 'StrictMissingParamRes' },
           },
-          handler: async () => ({ value: 'test' }),
+          run: async () => ({ value: 'test' }),
         });
       }).toThrow("Invalid URL parameter: 'missingParamStrict'");
     });
@@ -176,7 +176,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       let routes = getTestRoutes();
       routes.get({
         path: 'permissive-endpoint',
-        handler: async () => ({ value: 'ok' }),
+        run: async () => ({ value: 'ok' }),
       });
 
       // Switch to strict mode.
@@ -187,7 +187,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       expect(() => {
         routes.get({
           path: 'strict-endpoint',
-          handler: async () => ({ value: 'test' }),
+          run: async () => ({ value: 'test' }),
         });
       }).toThrow('[Apience] Documentation (doc) is required');
     });
@@ -200,7 +200,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       expect(() => {
         routes.get({
           path: 'strict-fails',
-          handler: async () => ({ value: 'test' }),
+          run: async () => ({ value: 'test' }),
         });
       }).toThrow();
 
@@ -211,7 +211,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       routes = getTestRoutes();
       routes.get({
         path: 'permissive-succeeds',
-        handler: async () => ({ value: 'success' }),
+        run: async () => ({ value: 'success' }),
       });
 
       // Verify it works
@@ -240,7 +240,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       const routes = getTestRoutes();
       routes.get({
         path: 'warn-console',
-        handler: async () => ({ value: 'test' }),
+        run: async () => ({ value: 'test' }),
       });
 
       expect(consoleWarnSpy).toHaveBeenCalledWith('[Apience] No documentation for GET /warn-console');
@@ -254,7 +254,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       const routes = getTestRoutes();
       routes.get({
         path: 'no-warn-config',
-        handler: async () => ({ value: 'test' }),
+        run: async () => ({ value: 'test' }),
       });
 
       expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -272,7 +272,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       expect(() => {
         routes.get({
           path: 'no-warn-strict',
-          handler: async () => ({ value: 'test' }),
+          run: async () => ({ value: 'test' }),
         });
       }).toThrow('[Apience] Documentation (doc) is required');
 
@@ -292,7 +292,7 @@ describe('Apience Configuration: Optional Documentation', () => {
           description: 'Test endpoint description',
           response: { value: { text: 'Value', type: 'string' }, $name: 'TestRes' },
         },
-        handler: async () => ({ value: 'success' }),
+        run: async () => ({ value: 'success' }),
       });
 
       expect(consoleWarnSpy).not.toHaveBeenCalled();

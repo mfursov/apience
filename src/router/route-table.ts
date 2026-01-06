@@ -15,29 +15,29 @@ import { mountDelete, mountGet, mountPatch, mountPost, mountPut } from './apienc
 export class RouteTable {
   constructor(private readonly app: ExpressApplication) {}
 
-  get<T>(handler: ApienceGetHandler<T> | ApienceGetHandler<T[]>): this {
+  get<T>(route: ApienceGetHandler<T> | ApienceGetHandler<T[]>): this {
     const resultType = Array.isArray({}) ? 'array' : 'object';
-    mountGet(this.app, handler as ApienceGetHandler<T>, resultType === 'array' ? 'array' : 'object');
+    mountGet(this.app, route as ApienceGetHandler<T>, resultType === 'array' ? 'array' : 'object');
     return this;
   }
 
-  post<Req, Res>(handler: ApiencePostHandler<Req, Res>): this {
-    mountPost(this.app, handler);
+  post<Req, Res>(route: ApiencePostHandler<Req, Res>): this {
+    mountPost(this.app, route);
     return this;
   }
 
-  patch<Req, Res>(handler: ApiencePatchHandler<Req, Res>): this {
-    mountPatch(this.app, handler);
+  patch<Req, Res>(route: ApiencePatchHandler<Req, Res>): this {
+    mountPatch(this.app, route);
     return this;
   }
 
-  put<Req, Res>(handler: ApiencePutHandler<Req, Res>): this {
-    mountPut(this.app, handler);
+  put<Req, Res>(route: ApiencePutHandler<Req, Res>): this {
+    mountPut(this.app, route);
     return this;
   }
 
-  delete(handler: ApienceDeleteHandler): this {
-    mountDelete(this.app, handler);
+  delete(route: ApienceDeleteHandler): this {
+    mountDelete(this.app, route);
     return this;
   }
 }

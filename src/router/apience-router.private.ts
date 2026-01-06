@@ -23,67 +23,67 @@ import { registerApiEndpointDocs } from './route-docs-handler.private';
 /** Registers a GET route. */
 export const mountGet = (
   app: ExpressApplication,
-  handler: ApienceGetHandler | ApienceGetListHandler,
+  route: ApienceGetHandler | ApienceGetListHandler,
   resultType: 'object' | 'array',
-): void => mount(app, { method: 'get', handler, isArrayResultType: resultType === 'array' });
+): void => mount(app, { method: 'get', route, isArrayResultType: resultType === 'array' });
 
 /** Registers a POST route. */
-export const mountPost = <Req, Res>(app: ExpressApplication, handler: ApiencePostHandler<Req, Res>): void =>
-  mount(app, { method: 'post', handler: handler as ApiencePostHandler });
+export const mountPost = <Req, Res>(app: ExpressApplication, route: ApiencePostHandler<Req, Res>): void =>
+  mount(app, { method: 'post', route: route as ApiencePostHandler });
 
 /** Registers a PATCH route. */
-export const mountPatch = <Req, Res>(app: ExpressApplication, handler: ApiencePatchHandler<Req, Res>): void =>
-  mount(app, { method: 'patch', handler: handler as ApiencePatchHandler });
+export const mountPatch = <Req, Res>(app: ExpressApplication, route: ApiencePatchHandler<Req, Res>): void =>
+  mount(app, { method: 'patch', route: route as ApiencePatchHandler });
 
 /** Registers a PUT route. */
-export const mountPut = <Req, Res>(app: ExpressApplication, handler: ApiencePutHandler<Req, Res>): void =>
-  mount(app, { method: 'put', handler: handler as ApiencePutHandler });
+export const mountPut = <Req, Res>(app: ExpressApplication, route: ApiencePutHandler<Req, Res>): void =>
+  mount(app, { method: 'put', route: route as ApiencePutHandler });
 
 /** Registers a DELETE route. */
-export const mountDelete = (app: ExpressApplication, handler: ApienceDeleteHandler): void =>
-  mount(app, { method: 'delete', handler });
+export const mountDelete = (app: ExpressApplication, route: ApienceDeleteHandler): void =>
+  mount(app, { method: 'delete', route });
 
 /** Mounts a route to the Express application. */
-export function mount(app: ExpressApplication, { method, handler, isArrayResultType }: RouteRegistrationInfo): void {
-  const pathPrefix = handler.version ? `/v${handler.version}/` : '/';
+export function mount(app: ExpressApplication, { method, route, isArrayResultType }: RouteRegistrationInfo): void {
+  const pathPrefix = route.version ? `/v${route.version}/` : '/';
   const config = getApienceConfig();
 
   // Runtime check: require docs if configured
-  if (config.requireDocs && !handler.doc) {
+  if (config.requireDocs && !route.doc) {
     throw new Error(
-      `[Apience] Documentation (doc) is required for ${method.toUpperCase()} ${pathPrefix}${handler.path}. ` +
+      `[Apience] Documentation (doc) is required for ${method.toUpperCase()} ${pathPrefix}${route.path}. ` +
         `Set configureApience({ requireDocs: false }) to disable this check.`,
     );
   }
 
   // Warning for missing docs (only if not in strict mode)
-  if (config.warnOnMissingDocs && !handler.doc && !config.requireDocs) {
-    console.warn(`[Apience] No documentation for ${method.toUpperCase()} ${pathPrefix}${handler.path}`);
+  if (config.warnOnMissingDocs && !route.doc && !config.requireDocs) {
+    console.warn(`[Apience] No documentation for ${method.toUpperCase()} ${pathPrefix}${route.path}`);
   }
 
   // Register documentation only if provided
-  if (handler.doc) {
-    registerApiEndpointDocs(method, pathPrefix + handler.path, handler.doc, !!isArrayResultType);
+  if (route.doc) {
+    registerApiEndpointDocs(method, pathPrefix + route.path, route.doc, !!isArrayResultType);
   }
 
-  const path = `${pathPrefix}${handler.path}`;
+  const path = `${pathPrefix}${route.path}`;
   console.log(`${`${method.toUpperCase()}     `.substring(0, 8)} ${path}`);
   app[method](
     path,
     catchRouteErrors(async (req, res) => {
       let result: ApienceResponseOrValue<unknown>;
-      validateUrlParameters(req, handler);
+      validateUrlParameters(req, route);
       const requestContext = newRequestContext(undefined, req, res);
 
       if (method === 'get') {
-        result = await runGetHandler(handler as ApienceGetHandler, requestContext, handler.middlewares);
+        result = await runGetHandler(route as ApienceGetHandler, requestContext, route.middlewares);
       } else if (method === 'delete') {
-        result = await runDeleteHandler(handler as ApienceDeleteHandler, requestContext, handler.middlewares);
+        result = await runDeleteHandler(route as ApienceDeleteHandler, requestContext, route.middlewares);
       } else {
         result = await runPppHandler(
-          handler as PppHandler<unknown, unknown>,
+          route as PppHandler<unknown, unknown>,
           requestContext as ApienceRequestContextImpl<unknown>,
-          handler.middlewares,
+          route.middlewares,
         );
       }
 
@@ -126,20 +126,20 @@ function validateUrlParameters(
 
 /** Runs GET handler with optional middleware. */
 async function runGetHandler<ResponseResultType>(
-  handler: ApienceGetHandler<ResponseResultType>,
+  route: ApienceGetHandler<ResponseResultType>,
   requestContext: ApienceRequestContextImpl<void>,
   middlewares?: Array<ApienceHandlerMiddleware>,
 ): Promise<ApienceResponseOrValue<ResponseResultType>> {
-  return await executeWithMiddleware(() => handler.handler(requestContext), middlewares || [], requestContext);
+  return await executeWithMiddleware(() => route.run(requestContext), middlewares || [], requestContext);
 }
 
 /** Runs DELETE handler with optional middleware. */
 async function runDeleteHandler(
-  handler: ApienceDeleteHandler,
+  route: ApienceDeleteHandler,
   requestContext: ApienceRequestContextImpl<void>,
   middlewares?: Array<ApienceHandlerMiddleware>,
 ): Promise<ApienceResponseOrValue<void>> {
-  await executeWithMiddleware(() => handler.handler(requestContext), middlewares || [], requestContext);
+  await executeWithMiddleware(() => route.run(requestContext), middlewares || [], requestContext);
   return undefined;
 }
 
@@ -148,22 +148,22 @@ type PppHandler<Req, Res> = ApiencePostHandler<Req, Res> | ApiencePutHandler<Req
 
 /** Runs POST/PUT/PATCH handler with optional middleware. */
 async function runPppHandler<RequestBodyType, ResponseResultType>(
-  handler: PppHandler<RequestBodyType, ResponseResultType>,
+  route: PppHandler<RequestBodyType, ResponseResultType>,
   requestContext: ApienceRequestContextImpl<RequestBodyType>,
   middlewares?: Array<ApienceHandlerMiddleware>,
 ): Promise<ApienceResponseOrValue<ResponseResultType>> {
   const apienceRequest = requestContext.req.body as unknown;
 
   // If validator is empty object {}, allow unknown fields
-  const isEmptyValidator = Object.keys(handler.validator).length === 0;
-  const error = validateObject(apienceRequest, handler.validator, `${BAD_REQUEST}: request body`, {
+  const isEmptyValidator = Object.keys(route.validator).length === 0;
+  const error = validateObject(apienceRequest, route.validator, `${BAD_REQUEST}: request body`, {
     failOnUnknownFields: !isEmptyValidator,
   });
   assertTruthy(!error, error);
   requestContext.data.request = requestContext.req.body;
 
   return await executeWithMiddleware(
-    () => handler.handler(requestContext),
+    () => route.run(requestContext),
     middlewares || [],
     requestContext as ApienceRequestContext<RequestBodyType>,
   );
@@ -174,12 +174,12 @@ async function runPppHandler<RequestBodyType, ResponseResultType>(
  * Middleware are applied in order, with the handler at the end.
  */
 async function executeWithMiddleware<T>(
-  handler: () => Promise<T>,
+  run: () => Promise<T>,
   middlewares: Array<ApienceHandlerMiddleware>,
   context: ApienceRequestContext<unknown>,
 ): Promise<T> {
   // Build the middleware chain
-  let current: () => Promise<T> = handler;
+  let current: () => Promise<T> = run;
 
   // Apply middleware in reverse order so they wrap each other
   for (let i = middlewares.length - 1; i >= 0; i--) {

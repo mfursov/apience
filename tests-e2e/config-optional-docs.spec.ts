@@ -58,7 +58,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       routes.put({
         path: 'no-doc-put/:id',
         validator: {},
-        run: async (ctx: ApienceRequestContext) => ({ value: ctx.params.get('id') }),
+        run: async (ctx: ApienceRequestContext<Record<string, never>>) => ({ value: ctx.params.get('id') }),
       });
 
       const response = await makeRequest('PUT', '/no-doc-put/456', { body: {} });
@@ -71,7 +71,7 @@ describe('Apience Configuration: Optional Documentation', () => {
       routes.patch({
         path: 'no-doc-patch/:id',
         validator: {},
-        run: async (ctx: ApienceRequestContext) => ({ value: ctx.params.get('id') }),
+        run: async (ctx: ApienceRequestContext<Record<string, never>>) => ({ value: ctx.params.get('id') }),
       });
 
       const response = await makeRequest('PATCH', '/no-doc-patch/789', { body: {} });
@@ -121,7 +121,7 @@ describe('Apience Configuration: Optional Documentation', () => {
         routes.post({
           path: 'missing-doc-post',
           validator: {},
-          run: async () => ({ value: 'test' }),
+          run: async (_ctx: ApienceRequestContext<Record<string, never>>) => ({ value: 'test' }),
         });
       }).toThrow('[Apience] Documentation (doc) is required for POST /missing-doc-post');
     });

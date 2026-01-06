@@ -14,8 +14,11 @@ import { ExpressRequest } from '../utils/express.utils';
  * }
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ApienceAuthUser {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ApienceAuthUser {
+  // This interface is intentionally empty to allow module augmentation
+  // Users should extend it via declare module 'apience' { interface ApienceAuthUser { ... } }
+}
 
 /**
  * Generic authentication strategy interface.

@@ -1,4 +1,4 @@
-import { assertTruthy, callValueAssertion, validateObject } from 'assertic';
+import { assertTruthy, callValueAssertion, validateObject, Assertion } from 'assertic';
 import * as url from 'url';
 import { getApienceConfig } from '../config/apience-config';
 import { catchRouteErrors } from '../middleware/catch-all.middleware';
@@ -154,11 +154,26 @@ async function runPppHandler<RequestBodyType, ResponseResultType>(
 ): Promise<ApienceResponseOrValue<ResponseResultType>> {
   const apienceRequest = requestContext.req.body as unknown;
 
-  // If validator is empty object {}, allow unknown fields
-  const isEmptyValidator = Object.keys(route.validator).length === 0;
-  const error = validateObject(apienceRequest, route.validator, `${BAD_REQUEST}: request body`, {
-    failOnUnknownFields: !isEmptyValidator,
-  });
+  // Handle validation based on whether validator is an object or function
+  const validator = route.validator as Assertion<RequestBodyType>;
+  let error: string | undefined;
+  
+  // Check if validator is an object (ObjectAssertion) vs function (ValueAssertion)
+  if (typeof validator === 'object' && validator !== null) {
+    // It's an ObjectAssertion - use validateObject
+    const isEmptyValidator = Object.keys(validator).length === 0;
+    error = validateObject(apienceRequest, validator, `${BAD_REQUEST}: request body`, {
+      failOnUnknownFields: !isEmptyValidator,
+    });
+  } else {
+    // It's a ValueAssertion (function) - use callValueAssertion
+    try {
+      callValueAssertion(apienceRequest, validator, `${BAD_REQUEST}: request body`);
+    } catch (err) {
+      error = err instanceof Error ? err.message : String(err);
+    }
+  }
+  
   assertTruthy(!error, error);
   requestContext.data.request = requestContext.req.body;
 
